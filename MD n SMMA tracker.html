@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Learning Tracker</title>
+    <style>
+        :root {
+            /* Global Colors */
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --surface-hover: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            
+            /* App Accents */
+            --md-accent: #06b6d4; /* Cyan */
+            --smma-accent: #8b5cf6; /* Purple */
+            
+            /* Current Active Accent (Dynamic) */
+            --active-accent: var(--md-accent);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            padding: 0 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 1.2rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+        }
+
+        .tab-btn.active {
+            color: var(--text-main);
+            border-bottom: 3px solid var(--active-accent);
+        }
+
+        /* Main Container */
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            width: 100%;
+            flex-grow: 1;
+        }
+
+        .page-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard Header */
+        .dashboard-header {
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .dashboard-title {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-meta {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin-top: 1rem;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .progress-track {
+            background-color: var(--border-color);
+            border-radius: 99px;
+            height: 10px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background-color: var(--active-accent);
+            height: 100%;
+            width: 0%;
+            border-radius: 99px;
+            transition: width 0.5s ease-out;
+        }
+
+        /* Timeline & Months */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .month-card {
+            background-color: var(--surface-color);
+            border-radius: 12px;
+            border-left: 4px solid var(--active-accent);
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .month-header {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .month-title {
+            font-size: 1.4rem;
+            color: var(--active-accent);
+            margin-bottom: 0.3rem;
+        }
+
+        .month-milestone {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Topics & Checklists */
+        .topic-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .topic-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .topic-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .topic-insight {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.8rem;
+            padding-left: 1rem;
+            border-left: 2px solid var(--border-color);
+        }
+
+        .checklist {
+            list-style: none;
+            padding-left: 0.5rem;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.6rem;
+            cursor: pointer;
+            padding: 0.4rem;
+            border-radius: 6px;
+            transition: background 0.2s ease;
+        }
+
+        .check-item:hover {
+            background-color: var(--surface-hover);
+        }
+
+        .check-item input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--text-muted);
+            border-radius: 4px;
+            margin-right: 10px;
+            margin-top: 2px;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .check-item input[type="checkbox"]:checked {
+            background-color: var(--active-accent);
+            border-color: var(--active-accent);
+        }
+
+        .check-item input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            color: #fff;
+            font-size: 12px;
+            font-weight: bold;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .check-item span {
+            color: var(--text-main);
+            transition: color 0.2s ease;
+        }
+
+        .check-item input[type="checkbox"]:checked + span {
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-tabs">
+            <button class="tab-btn active" data-target="md-page" onclick="switchTab('md')">Motion Design</button>
+            <button class="tab-btn" data-target="smma-page" onclick="switchTab('smma')">SOCIAL MEDIA MARKETING AGENCY</button>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Motion Design Section -->
+        <div id="md-page" class="page-section active">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Motion Design Roadmap</h1>
+                <p class="dashboard-meta">Duration: 3 Months | Goal: Industry-ready and capable of earning.</p>
+                <div class="progress-container">
+                    <div class="progress-stats">
+                        <span id="md-percent">0% Complete</span>
+                        <span id="md-count">0 / 0 Videos Finished (0 Remaining)</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="md-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline" id="md-timeline"></div>
+        </div>
+
+        <!-- SOCIAL MEDIA MARKETING AGENCY Section -->
+        <div id="smma-page" class="page-section">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">SOCIAL MEDIA MARKETING AGENCY Roadmap</h1>
+                <p class="dashboard-meta">Duration: 6 Months | Goal: Fully capable of earning through your agency.</p>
+                <div class="progress-container">
+                    <div class="progress-stats">
+                        <span id="smma-percent">0% Complete</span>
+                        <span id="smma-count">0 / 0 Videos Finished (0 Remaining)</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="smma-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline" id="smma-timeline"></div>
+        </div>
+    </main>
+
+    <script>
+        // Database Structure for Expandability
+        const roadmapData = {
+            md: [
+                {
+                    month: "Month 1: The Foundation",
+                    milestone: "Milestone: Create your first cohesive animated sequence.",
+                    topics: [
+                        { id: "md-ae", title: "After Effects basics", insight: "After Effects is the industry standard — start here", videos: ["Basics of AE (1)", "Basics of AE (2)"] },
+                        { id: "md-shape", title: "Shape layers", insight: "Shape layers are the building blocks of 90% of motion graphics", videos: ["How to animate shape layers ?", "How to use shape layers ?"] },
+                        { id: "md-key", title: "Keyframes", insight: "Keyframes are the language of all motion design", videos: ["Basics of keyframes (1)", "Basics of keyframes (2)"] },
+                        { id: "md-trans", title: "Transitions", insight: "Smooth transitions are invisible, jarring ones are all you see", videos: ["How to do transistions ?", "How to do transistions ? (2)"] }
+                    ]
+                },
+                {
+                    month: "Month 2: Advanced Techniques & Polish",
+                    milestone: "Milestone: Complete a complex mock project utilizing graphs and audio.",
+                    topics: [
+                        { id: "md-graph", title: "Graph editor", insight: "The graph editor is what separates amateurs from pros", videos: ["Graph editor Explained", "Graph editor tutorial"] },
+                        { id: "md-typo", title: "Typography animation", insight: "Animated type is everywhere — master it early", videos: ["How to animate text (1)", "How to animate text (2)"] },
+                        { id: "md-cam", title: "3D camera basics", insight: "3D depth makes flat motion feel alive", videos: ["What is 3D camera ?", "Basics of 3D camera"] },
+                        { id: "md-sound", title: "Sound sync", insight: "Motion that hits on the beat is universally satisfying", videos: ["How to sync sound design for motion graphics ?", "Role of sound design in Motion graphics"] },
+                        { id: "md-exp", title: "Expressions basics", insight: "Expressions automate your animations and save hours", videos: ["What is Expressions in AE ?", "Expression breif explained"] }
+                    ]
+                },
+                {
+                    month: "Month 3: Business & Client Acquisition",
+                    milestone: "Milestone: Launch portfolio and execute your first client outreach campaign.",
+                    topics: [
+                        { id: "md-port", title: "Motion portfolio", insight: "Your portfolio speaks louder than any pitch", videos: ["How to build portfolio ? (1)", "How to build portfolio ? (2)"] },
+                        { id: "md-clients", title: "How to get clients", insight: "Agencies always need motion designers — cold email them", videos: ["How to get Clients ? (1)", "How to get Clients ? (2)"] }
+                    ]
+                }
+            ],
+            smma: [
+                {
+                    month: "Month 1: Strategy & Avatar",
+                    milestone: "Milestone: Lock in your niche and understand exactly who you serve.",
+                    topics: [
+                        { id: "smma-niche", title: "Pick niche", insight: "A niche SOCIAL MEDIA MARKETING AGENCY earns 3x more than a generalist one", videos: ["How to pick a niche ?", "How to pick a niche (2)"] },
+                        { id: "smma-icp", title: "Understand ICP", insight: "Ideal Client Profile = the person you can get the best results for", videos: ["How to understand ideal customer profile ?"] }
+                    ]
+                },
+                {
+                    month: "Month 2: Packaging & Systems",
+                    milestone: "Milestone: Define an irresistible offer and systematize your delivery.",
+                    topics: [
+                        { id: "smma-offer", title: "Define offer", insight: "Make your offer so specific a client immediately knows it's for them", videos: ["How to define our offer?"] },
+                        { id: "smma-delivery", title: "Delivery workflow", insight: "Systemize delivery so quality doesn't depend on your mood", videos: ["How to Deliver Properly ?"] },
+                        { id: "smma-onboard", title: "Client onboarding", insight: "A smooth onboarding sets the tone for the entire relationship", videos: ["Entire onboarding process", "How to onboard clients?"] }
+                    ]
+                },
+                {
+                    month: "Month 3: Lead Machine",
+                    milestone: "Milestone: Set up a consistent engine for generating prospects.",
+                    topics: [
+                        { id: "smma-content", title: "Create content system", insight: "Build a repeatable content engine, not a one-off campaign", videos: ["How to create content for social media?", "Content System Advice"] },
+                        { id: "smma-leads", title: "Lead generation", insight: "Lead gen is the fuel — without it, the agency stalls", videos: ["How to create lead generations?", "How to get leads?"] }
+                    ]
+                },
+                {
+                    month: "Month 4: The Hunt",
+                    milestone: "Milestone: Launch outreach campaigns and book your first meetings.",
+                    topics: [
+                        { id: "smma-outreach", title: "Outreach", insight: "Volume + personalization + follow-up = booked calls", videos: ["Understanding of Cold Outreach", "Basics of cold outreaching"] }
+                    ]
+                },
+                {
+                    month: "Month 5: Closing Deals",
+                    milestone: "Milestone: Conduct sales calls and land your first paying client.",
+                    topics: [
+                        { id: "smma-sales", title: "Sales calls", insight: "Ask more questions than you answer — listening closes deals", videos: ["How does the entire sales process look?"] },
+                        { id: "smma-clients", title: "How to get clients", insight: "Cold DM + cold email + referral loop = unstoppable pipeline", videos: ["How to get clients (1)", "How to get clients (2)", "How to get clients (3)", "How to get clients (1)"] }
+                    ]
+                },
+                {
+                    month: "Month 6: Results & Growth",
+                    milestone: "Milestone: Deliver outstanding ROI and start systematically scaling.",
+                    topics: [
+                        { id: "smma-scale", title: "Reporting + scaling", insight: "Show ROI clearly, then ask for referrals — both grow the agency", videos: ["Reporting and Scaling", "how to scale systematically"] }
+                    ]
+                }
+            ]
+        };
+
+        // State Management
+        let savedProgress = JSON.parse(localStorage.getItem('tracker_progress')) || {};
+
+        // UI Logic
+        function switchTab(path) {
+            // Update tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[onclick="switchTab('${path}')"]`).classList.add('active');
+
+            // Update theme colors
+            const root = document.documentElement;
+            if (path === 'md') {
+                root.style.setProperty('--active-accent', 'var(--md-accent)');
+            } else {
+                root.style.setProperty('--active-accent', 'var(--smma-accent)');
+            }
+
+            // Update sections
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(`${path}-page`).classList.add('active');
+        }
+
+        function toggleCheckbox(id, path) {
+            savedProgress[id] = document.getElementById(id).checked;
+            localStorage.setItem('tracker_progress', JSON.stringify(savedProgress));
+            updateProgress(path);
+        }
+
+        function renderRoadmap(path) {
+            const container = document.getElementById(`${path}-timeline`);
+            const data = roadmapData[path];
+            let html = '';
+
+            data.forEach((monthData, monthIndex) => {
+                html += `
+                    <div class="month-card">
+                        <div class="month-header">
+                            <h2 class="month-title">${monthData.month}</h2>
+                            <p class="month-milestone">${monthData.milestone}</p>
+                        </div>
+                `;
+
+                monthData.topics.forEach(topic => {
+                    html += `
+                        <div class="topic-group">
+                            <h3 class="topic-title">${topic.title}</h3>
+                            <p class="topic-insight">${topic.insight}</p>
+                            <ul class="checklist">
+                    `;
+
+                    topic.videos.forEach((video, videoIndex) => {
+                        // Create unique ID for localStorage
+                        const uid = `${path}-${topic.id}-v${videoIndex}`;
+                        const isChecked = savedProgress[uid] ? 'checked' : '';
+                        
+                        html += `
+                                <label class="check-item">
+                                    <input type="checkbox" id="${uid}" ${isChecked} onchange="toggleCheckbox('${uid}', '${path}')">
+                                    <span>${video}</span>
+                                </label>
+                        `;
+                    });
+
+                    html += `
+                            </ul>
+                        </div>
+                    `;
+                });
+
+                html += `</div>`;
+            });
+
+            container.innerHTML = html;
+            updateProgress(path);
+        }
+
+        function updateProgress(path) {
+            let total = 0;
+            let completed = 0;
+
+            // Iterate over the specific path in the data model
+            roadmapData[path].forEach(month => {
+                month.topics.forEach(topic => {
+                    topic.videos.forEach((video, index) => {
+                        total++;
+                        const uid = `${path}-${topic.id}-v${index}`;
+                        if (savedProgress[uid]) {
+                            completed++;
+                        }
+                    });
+                });
+            });
+
+            const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
+            const remaining = total - completed;
+
+            document.getElementById(`${path}-percent`).innerText = `${percent}% Complete`;
+            document.getElementById(`${path}-count`).innerText = `${completed} / ${total} Videos Finished (${remaining} Remaining)`;
+            document.getElementById(`${path}-fill`).style.width = `${percent}%`;
+        }
+
+        // Initialize App
+        function init() {
+            renderRoadmap('md');
+            renderRoadmap('smma');
+            switchTab('md'); // Default tab
+        }
+
+        window.onload = init;
+
+    </script>
+</body>
+</html>
