@@ -92,7 +92,7 @@
             transition: all 0.2s ease;
         }
 
-        .add-link-btn:hover {
+        .add-link-btn:hover, .add-link-btn.active-mode {
             background-color: var(--active-accent);
             border-color: var(--active-accent);
         }
@@ -120,13 +120,13 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Dashboard Header */
+        /* Dashboard Header & Progress Bars */
         .dashboard-header {
             background-color: var(--surface-color);
             border-radius: 12px;
             padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .dashboard-title {
@@ -140,9 +140,15 @@
             margin-bottom: 1.5rem;
         }
 
-        /* Progress Bar */
         .progress-container {
             margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        
+        .progress-bar-wrapper {
+            display: block;
         }
 
         .progress-stats {
@@ -207,16 +213,9 @@
             margin-bottom: 1.5rem;
         }
 
-        .topic-group:last-child {
-            margin-bottom: 0;
-        }
-
         .topic-title {
             font-size: 1.1rem;
             margin-bottom: 0.2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
         .topic-insight {
@@ -232,18 +231,25 @@
             padding-left: 0.5rem;
         }
 
-        .check-item {
+        .check-item-container {
             display: flex;
-            align-items: flex-start;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 0.6rem;
-            cursor: pointer;
             padding: 0.4rem;
             border-radius: 6px;
             transition: background 0.2s ease;
         }
 
-        .check-item:hover {
+        .check-item-container:hover {
             background-color: var(--surface-hover);
+        }
+
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            cursor: pointer;
+            flex-grow: 1;
         }
 
         .check-item input[type="checkbox"] {
@@ -294,7 +300,52 @@
             text-decoration: line-through;
         }
 
-        /* Modal Subsystem UI Design */
+        /* Link Management Icons */
+        .management-icons {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .management-mode-active .management-icons {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .mgt-icon {
+            cursor: pointer;
+            font-size: 1.1rem;
+            filter: grayscale(100%);
+            opacity: 0.6;
+            transition: all 0.2s;
+        }
+
+        .mgt-icon:hover {
+            opacity: 1;
+            filter: grayscale(0%);
+            transform: scale(1.1);
+        }
+
+        .mgt-icon.disabled {
+            cursor: not-allowed;
+            opacity: 0.2;
+        }
+
+        .mgt-icon.disabled:hover {
+            transform: none;
+            filter: grayscale(100%);
+        }
+
+        .mgt-icon.active-danger {
+            filter: grayscale(0%);
+            opacity: 1;
+            color: #ef4444;
+        }
+
+        /* Modal Subsystem UI */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -347,80 +398,25 @@
             color: var(--text-main);
         }
 
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        .form-control {
-            width: 100%;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 0.75rem;
-            border-radius: 6px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .form-control:focus {
-            border-color: var(--active-accent);
-        }
-
-        .modal-footer {
+        /* Player Utilities */
+        .player-controls-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-top: 1.5rem;
+            margin-top: 1rem;
+            gap: 1rem;
         }
 
-        .btn {
-            padding: 0.6rem 1.2rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            border: 1px solid transparent;
-            font-size: 0.95rem;
-        }
-
-        .btn-secondary {
-            background-color: transparent;
-            border-color: var(--border-color);
-            color: var(--text-muted);
-        }
-
-        .btn-secondary:hover {
+        .speed-selector {
+            background-color: var(--bg-color);
             color: var(--text-main);
-            background-color: var(--surface-hover);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem;
+            border-radius: 6px;
+            outline: none;
         }
 
-        .btn-primary {
-            background-color: var(--active-accent);
-            color: #fff;
-        }
-
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-
-        .btn-danger {
-            background-color: transparent;
-            border-color: #ef4444;
-            color: #ef4444;
-        }
-
-        .btn-danger:hover {
-            background-color: #7f1d1d;
-            color: #f8fafc;
-        }
+        .speed-selector:focus { border-color: var(--active-accent); }
 
     </style>
 </head>
@@ -431,78 +427,68 @@
             <button class="tab-btn active" data-target="md-page" onclick="switchTab('md')">Motion Design</button>
             <button class="tab-btn" data-target="smma-page" onclick="switchTab('smma')">Social Media Marketing Agency</button>
         </div>
-        <button class="add-link-btn" onclick="openLinkModal()">➕ Add Link</button>
+        <button class="add-link-btn" onclick="toggleManagementMode()" id="manage-btn">⚙️ Link Management Mode</button>
     </nav>
 
-    <main>
+    <main id="app-main">
         <!-- Motion Design Section -->
         <div id="md-page" class="page-section active">
             <div class="dashboard-header">
                 <h1 class="dashboard-title">Motion Design Roadmap</h1>
                 <p class="dashboard-meta">Duration: 3 Months | Goal: Industry-ready and capable of earning.</p>
                 <div class="progress-container">
-                    <div class="progress-stats">
-                        <span id="md-percent">0% Complete</span>
-                        <span id="md-count">0 / 0 Videos Finished (0 Remaining)</span>
+                    <div class="progress-bar-wrapper" id="md-completion-wrapper">
+                        <div class="progress-stats">
+                            <span>Topic Completion</span>
+                            <span id="md-count">0 / 0 Videos Finished (0 Remaining)</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="md-fill" style="width: 0%;"></div>
+                        </div>
                     </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" id="md-fill" style="width: 0%;"></div>
+                    <div class="progress-bar-wrapper" id="md-watch-wrapper">
+                        <div class="progress-stats">
+                            <span>Video Watch Progress (Uploaded Only)</span>
+                            <span id="md-watch-percent">0%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="md-watch-fill" style="width: 0%;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="timeline" id="md-timeline"></div>
         </div>
 
-        <!-- Social Media Marketing Agency Section -->
+        <!-- SMMA Section -->
         <div id="smma-page" class="page-section">
             <div class="dashboard-header">
                 <h1 class="dashboard-title">Social Media Marketing Agency Roadmap</h1>
                 <p class="dashboard-meta">Duration: 6 Months | Goal: Fully capable of earning through your agency.</p>
                 <div class="progress-container">
-                    <div class="progress-stats">
-                        <span id="smma-percent">0% Complete</span>
-                        <span id="smma-count">0 / 0 Videos Finished (0 Remaining)</span>
+                    <div class="progress-bar-wrapper" id="smma-completion-wrapper">
+                        <div class="progress-stats">
+                            <span>Topic Completion</span>
+                            <span id="smma-count">0 / 0 Videos Finished (0 Remaining)</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="smma-fill" style="width: 0%;"></div>
+                        </div>
                     </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" id="smma-fill" style="width: 0%;"></div>
+                    <div class="progress-bar-wrapper" id="smma-watch-wrapper">
+                        <div class="progress-stats">
+                            <span>Video Watch Progress (Uploaded Only)</span>
+                            <span id="smma-watch-percent">0%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="smma-watch-fill" style="width: 0%;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="timeline" id="smma-timeline"></div>
         </div>
     </main>
-
-    <!-- Link Management Modal System -->
-    <div id="link-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Attach Source Video Link</h2>
-                <button class="close-modal" onclick="closeLinkModal()">&times;</button>
-            </div>
-            <div class="form-group">
-                <label for="modal-track">Target Stream Curriculum</label>
-                <select id="modal-track" class="form-control" onchange="populateVideoDropdown()">
-                    <option value="md">Motion Design</option>
-                    <option value="smma">Social Media Marketing Agency</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="modal-video">Target Module Item</label>
-                <select id="modal-video" class="form-control"></select>
-            </div>
-            <div class="form-group">
-                <label for="modal-url">Video Source URL (YouTube / Direct Web Video File Link)</label>
-                <input type="text" id="modal-url" class="form-control" placeholder="https://www.youtube.com/watch?v=... or direct link .mp4">
-            </div>
-            <div class="modal-footer">
-                <button id="modal-delete-btn" class="btn btn-danger" style="display: none;" onclick="deleteCustomLink()">Delete Link</button>
-                <div style="display: flex; gap: 1rem; margin-left: auto;">
-                    <button class="btn btn-secondary" onclick="closeLinkModal()">Cancel</button>
-                    <button id="modal-save-btn" class="btn btn-primary" onclick="saveCustomLink()">Save Link</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Media Theater Modals Player Container -->
     <div id="player-modal" class="modal-overlay">
@@ -514,12 +500,30 @@
             <div id="player-container" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background: #000; border-radius: 8px; border: 1px solid var(--border-color);">
                 <div id="media-viewport-placeholder" style="position: absolute; width:100%; height:100%;"></div>
             </div>
-            <div style="margin-top: 1.2rem; display: flex; flex-direction: column; gap: 0.4rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+            
+            <div class="player-controls-row">
+                <div style="display: flex; flex-direction: column; gap: 0.2rem;">
                     <span id="player-status" style="font-weight: 600; color: var(--active-accent);">Remaining target watch time: Calculating...</span>
                     <span id="player-progress-bar-text" style="font-size: 0.85rem; color: var(--text-muted);">0s / 0s required</span>
                 </div>
+                <div>
+                    <label for="speed-select" style="font-size:0.85rem; color:var(--text-muted); margin-right:5px;">Speed:</label>
+                    <select id="speed-select" class="speed-selector" onchange="changePlaybackSpeed()">
+                        <option value="0.25">0.25×</option>
+                        <option value="0.5">0.5×</option>
+                        <option value="1" selected>1×</option>
+                        <option value="1.25">1.25×</option>
+                        <option value="1.5">1.5×</option>
+                        <option value="1.75">1.75×</option>
+                        <option value="2">2×</option>
+                        <option value="2.25">2.25×</option>
+                        <option value="2.5">2.5×</option>
+                        <option value="2.75">2.75×</option>
+                        <option value="3">3×</option>
+                    </select>
+                </div>
             </div>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Shortcuts: Left Arrow (-5s) | Right Arrow (+5s)</p>
         </div>
     </div>
 
@@ -608,20 +612,34 @@
             ]
         };
 
-        // State Management 
+        // State Management
         let savedProgress = JSON.parse(localStorage.getItem('tracker_progress')) || {};
         let savedLinks = JSON.parse(localStorage.getItem('tracker_links')) || {};
         let watchProgress = JSON.parse(localStorage.getItem('tracker_watch_progress')) || {};
+        let customTitles = JSON.parse(localStorage.getItem('tracker_custom_titles')) || {};
+        let userPlaybackSpeed = parseFloat(localStorage.getItem('tracker_playback_speed')) || 1;
+        
+        let isManagementMode = false;
+        let currentPathContext = 'md';
 
-        // Active Player Architecture Trackers
+        // Active Player Trackers
         let activeYtPlayer = null;
         let activeHtml5Player = null;
         let trackingHeartbeat = null;
         let currentPlayingUid = null;
         let lastTimestampCheckpoint = 0;
-        let currentPathContext = 'md';
+        let isPlayerOpen = false;
 
-        // Load YouTube Iframe Script Target Asynchronously
+        // Ensure robust structure in watchProgress object
+        function initializeProgressObj(uid) {
+            if (!watchProgress[uid]) {
+                watchProgress[uid] = { segments: [], totalDuration: 0, unlocked: false, lastPosition: 0 };
+            }
+            if (!watchProgress[uid].segments) watchProgress[uid].segments = [];
+            if (typeof watchProgress[uid].lastPosition !== 'number') watchProgress[uid].lastPosition = 0;
+        }
+
+        // Load YouTube Iframe Script Asynchronously
         if (!window.YT) {
             const tag = document.createElement('script');
             tag.src = "https://www.youtube.com/iframe_api";
@@ -629,92 +647,57 @@
             firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         }
 
-        // Extract YouTube Uniform Identifiers
         function getYouTubeId(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             const match = url.match(regExp);
             return (match && match[2].length === 11) ? match[2] : null;
         }
 
-        // Modal Form Controllers
-        function openLinkModal() {
-            document.getElementById('link-modal').style.display = 'flex';
-            populateVideoDropdown();
-        }
-
-        function closeLinkModal() {
-            document.getElementById('link-modal').style.display = 'none';
-        }
-
-        function populateVideoDropdown() {
-            const track = document.getElementById('modal-track').value;
-            const videoSelect = document.getElementById('modal-video');
-            let optionTemplates = '';
+        // Management Mode Toggles
+        function toggleManagementMode() {
+            isManagementMode = !isManagementMode;
+            const btn = document.getElementById('manage-btn');
+            const main = document.getElementById('app-main');
             
-            roadmapData[track].forEach(month => {
-                month.topics.forEach(topic => {
-                    topic.videos.forEach((video, index) => {
-                        const uid = `${track}-${topic.id}-v${index}`;
-                        optionTemplates += `<option value="${uid}">${topic.title} — ${video}</option>`;
-                    });
-                });
-            });
-            videoSelect.innerHTML = optionTemplates;
-            handleVideoSelectionChange();
-        }
-
-        function handleVideoSelectionChange() {
-            const uid = document.getElementById('modal-video').value;
-            const urlInput = document.getElementById('modal-url');
-            const saveBtn = document.getElementById('modal-save-btn');
-            const delBtn = document.getElementById('modal-delete-btn');
-
-            if (savedLinks[uid]) {
-                urlInput.value = savedLinks[uid];
-                saveBtn.innerText = "Update Link";
-                delBtn.style.display = "block";
+            if (isManagementMode) {
+                btn.classList.add('active-mode');
+                btn.innerText = "❌ Exit Management Mode";
+                main.classList.add('management-mode-active');
             } else {
-                urlInput.value = '';
-                saveBtn.innerText = "Save Link";
-                delBtn.style.display = "none";
+                btn.classList.remove('active-mode');
+                btn.innerText = "⚙️ Link Management Mode";
+                main.classList.remove('management-mode-active');
+            }
+            renderRoadmap(currentPathContext);
+        }
+
+        function renameCustomTitle(uid, currentTitle) {
+            const newTitle = prompt("Enter a new title for this topic:", customTitles[uid] || currentTitle);
+            if (newTitle !== null && newTitle.trim() !== "") {
+                customTitles[uid] = newTitle.trim();
+                localStorage.setItem('tracker_custom_titles', JSON.stringify(customTitles));
+                renderRoadmap(currentPathContext);
             }
         }
 
-        // Bind selection change dynamically
-        document.getElementById('modal-video').addEventListener('change', handleVideoSelectionChange);
-
-        function saveCustomLink() {
-            const uid = document.getElementById('modal-video').value;
-            const url = document.getElementById('modal-url').value.trim();
-            
-            if(!url) {
-                alert("Please declare a valid operational URL endpoint.");
-                return;
-            }
-            
-            // If updating an existing link to a new video, reset watch progress & uncheck
-            const existingUrl = savedLinks[uid];
-            if (existingUrl && existingUrl !== url) {
-                delete watchProgress[uid];
-                savedProgress[uid] = false;
+        function attachLinkPrompt(uid) {
+            const url = prompt("Enter a direct Video URL or YouTube link to attach:");
+            if (url !== null && url.trim() !== "") {
+                const existingUrl = savedLinks[uid];
+                if (existingUrl && existingUrl !== url.trim()) {
+                    delete watchProgress[uid];
+                    savedProgress[uid] = false;
+                }
+                savedLinks[uid] = url.trim();
+                localStorage.setItem('tracker_links', JSON.stringify(savedLinks));
                 localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
                 localStorage.setItem('tracker_progress', JSON.stringify(savedProgress));
+                renderRoadmap(currentPathContext);
             }
-
-            savedLinks[uid] = url;
-            localStorage.setItem('tracker_links', JSON.stringify(savedLinks));
-            closeLinkModal();
-            document.getElementById('modal-url').value = '';
-            
-            // Instantly re-render dashboards to manifest UI anchor updates
-            renderRoadmap('md');
-            renderRoadmap('smma');
         }
 
-        function deleteCustomLink() {
-            const uid = document.getElementById('modal-video').value;
-            
-            if (confirm("Are you sure you want to delete this link? This will reset any watch progress and uncheck the item.")) {
+        function deleteCustomLink(uid) {
+            if (confirm("Are you sure you want to delete this link? All saved watch progress will be lost.")) {
                 delete savedLinks[uid];
                 delete watchProgress[uid];
                 savedProgress[uid] = false;
@@ -722,89 +705,152 @@
                 localStorage.setItem('tracker_links', JSON.stringify(savedLinks));
                 localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
                 localStorage.setItem('tracker_progress', JSON.stringify(savedProgress));
-                
-                closeLinkModal();
-                
-                // Re-render UI to relock the item
-                renderRoadmap('md');
-                renderRoadmap('smma');
+                renderRoadmap(currentPathContext);
             }
         }
 
-        // Core Interactive Video Streaming & Verification Logic
-        function initiatePlayback(uid, title) {
+        // Segment Tracking Algorithm
+        function mergeSegmentsAndCalculateTotal(segments) {
+            if (!segments || segments.length === 0) return 0;
+            
+            // Deep copy and sort
+            let sorted = [...segments].sort((a, b) => a[0] - b[0]);
+            let merged = [sorted[0]];
+            
+            for (let i = 1; i < sorted.length; i++) {
+                let last = merged[merged.length - 1];
+                let current = sorted[i];
+                
+                if (current[0] <= last[1]) {
+                    last[1] = Math.max(last[1], current[1]);
+                } else {
+                    merged.push(current);
+                }
+            }
+            return merged.reduce((acc, seg) => acc + (seg[1] - seg[0]), 0);
+        }
+
+        // Playback Architecture
+        function initiatePlayback(uid, defaultTitle) {
+            if (isManagementMode) return; // Prevent launch if managing
             const url = savedLinks[uid];
             if (!url) return;
 
             currentPlayingUid = uid;
-            document.getElementById('player-video-title').innerText = title;
+            const displayTitle = customTitles[uid] || defaultTitle;
+            document.getElementById('player-video-title').innerText = displayTitle;
             document.getElementById('player-modal').style.display = 'flex';
+            document.getElementById('speed-select').value = userPlaybackSpeed;
+            isPlayerOpen = true;
 
             const ytId = getYouTubeId(url);
             const isDirectVideo = url.match(/\.(mp4|webm|ogg)($|\?)/i);
             const container = document.getElementById('player-container');
 
-            // Reset Any Previous Heartbeats
             if (trackingHeartbeat) clearInterval(trackingHeartbeat);
             activeHtml5Player = null;
             activeYtPlayer = null;
 
-            // Initialize Progress Registry if non-existent
-            if (!watchProgress[uid]) {
-                watchProgress[uid] = { secondsWatched: 0, totalDuration: 0, unlocked: false };
-            }
+            initializeProgressObj(uid);
+            const startPos = watchProgress[uid].lastPosition || 0;
 
             if (ytId) {
                 container.innerHTML = '<div id="media-viewport-placeholder"></div>';
                 if (window.YT && window.YT.Player) {
-                    instantiateYtIframe(ytId);
+                    instantiateYtIframe(ytId, startPos);
                 } else {
-                    window.onYouTubeIframeAPIReady = () => instantiateYtIframe(ytId);
+                    window.onYouTubeIframeAPIReady = () => instantiateYtIframe(ytId, startPos);
                 }
             } else if (isDirectVideo) {
-                // Included standard HTML5 controls which natively handles fullscreen requests
                 container.innerHTML = `<video id="html5-core-engine" src="${url}" controls style="position:absolute; top:0; left:0; width:100%; height:100%;"></video>`;
-                instantiateHtml5Engine();
+                instantiateHtml5Engine(startPos);
             } else {
-                // Standalone Cross-Origin Fallback Option
                 container.innerHTML = `
                     <div style="position:absolute; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:2rem; text-align:center; color:var(--text-muted);">
-                        <p style="margin-bottom:1rem;">External Resource Hub Page. Standalone applications cannot verify cross-origin container tabs securely due to CORS policy structures.</p>
-                        <a href="${url}" target="_blank" class="btn btn-primary" onclick="triggerExternalFallbackTimer()">Launch External Training Node</a>
-                    </div>
-                `;
+                        <p style="margin-bottom:1rem;">External Resource Hub Page. Cross-origin videos must be watched natively.</p>
+                        <a href="${url}" target="_blank" class="btn btn-primary" style="background:var(--active-accent); padding:10px 15px; text-decoration:none; color:#fff; border-radius:5px;" onclick="triggerExternalFallbackTimer()">Launch External Training Node</a>
+                    </div>`;
                 triggerExternalFallbackTimer();
             }
         }
 
-        function instantiateYtIframe(videoId) {
-            // Passed 'fs: 1' to playerVars ensuring Full Screen functionality is inherently available within the embedded environment.
+        function instantiateYtIframe(videoId, startPos) {
             activeYtPlayer = new YT.Player('media-viewport-placeholder', {
                 height: '100%',
                 width: '100%',
                 videoId: videoId,
-                playerVars: { 'autoplay': 1, 'modestbranding': 1, 'rel': 0, 'fs': 1 },
+                playerVars: { 
+                    'autoplay': 1, 'controls': 1, 'rel': 0, 'fs': 1, 
+                    'start': Math.floor(startPos), 'modestbranding': 1
+                },
                 events: {
                     'onReady': (e) => {
+                        activeYtPlayer.setPlaybackRate(userPlaybackSpeed);
                         lastTimestampCheckpoint = activeYtPlayer.getCurrentTime();
                         igniteVerificationLoop('youtube');
+                        
+                        // Capture duration to update total required duration for progress bars
+                        const duration = activeYtPlayer.getDuration();
+                        if (duration > 0 && watchProgress[currentPlayingUid].totalDuration !== duration) {
+                            watchProgress[currentPlayingUid].totalDuration = duration;
+                            localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
+                            updateProgress(currentPathContext);
+                        }
                     },
                     'onStateChange': (e) => {
                         if (e.data === YT.PlayerState.PLAYING) {
                             lastTimestampCheckpoint = activeYtPlayer.getCurrentTime();
+                        } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
+                            savePlaybackPosition();
                         }
+                    },
+                    'onPlaybackRateChange': (e) => {
+                        userPlaybackSpeed = e.data;
+                        localStorage.setItem('tracker_playback_speed', userPlaybackSpeed);
+                        document.getElementById('speed-select').value = userPlaybackSpeed;
                     }
                 }
             });
         }
 
-        function instantiateHtml5Engine() {
+        function instantiateHtml5Engine(startPos) {
             activeHtml5Player = document.getElementById('html5-core-engine');
+            activeHtml5Player.currentTime = startPos;
+            activeHtml5Player.playbackRate = userPlaybackSpeed;
+            
             activeHtml5Player.play().catch(()=>{});
-            activeHtml5Player.onplaying = () => {
-                lastTimestampCheckpoint = activeHtml5Player.currentTime;
+            
+            activeHtml5Player.onloadedmetadata = () => {
+                const duration = activeHtml5Player.duration;
+                if (duration > 0 && watchProgress[currentPlayingUid].totalDuration !== duration) {
+                    watchProgress[currentPlayingUid].totalDuration = duration;
+                    localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
+                    updateProgress(currentPathContext);
+                }
             };
+            
+            activeHtml5Player.onplaying = () => lastTimestampCheckpoint = activeHtml5Player.currentTime;
+            activeHtml5Player.onpause = () => savePlaybackPosition();
+            activeHtml5Player.onended = () => savePlaybackPosition();
+            activeHtml5Player.onratechange = () => {
+                userPlaybackSpeed = activeHtml5Player.playbackRate;
+                localStorage.setItem('tracker_playback_speed', userPlaybackSpeed);
+                document.getElementById('speed-select').value = userPlaybackSpeed;
+            };
+
             igniteVerificationLoop('html5');
+        }
+
+        function changePlaybackSpeed() {
+            const select = document.getElementById('speed-select');
+            userPlaybackSpeed = parseFloat(select.value);
+            localStorage.setItem('tracker_playback_speed', userPlaybackSpeed);
+            
+            if (activeYtPlayer && typeof activeYtPlayer.setPlaybackRate === 'function') {
+                activeYtPlayer.setPlaybackRate(userPlaybackSpeed);
+            } else if (activeHtml5Player) {
+                activeHtml5Player.playbackRate = userPlaybackSpeed;
+            }
         }
 
         function igniteVerificationLoop(engineType) {
@@ -825,30 +871,38 @@
 
                 if (totalSpan <= 0 || isNaN(totalSpan) || !isPlaying) return;
 
-                // Anti-Skipping Enforcement Protection Engine
-                const shiftDelta = currentPos - lastTimestampCheckpoint;
-                if (shiftDelta >= 0 && shiftDelta <= 2.5) {
-                    watchProgress[currentPlayingUid].secondsWatched += shiftDelta;
-                    watchProgress[currentPlayingUid].totalDuration = totalSpan;
+                // Detect legitimate real-time watch vs seeking
+                const delta = currentPos - lastTimestampCheckpoint;
+                if (delta > 0 && delta <= 3 * userPlaybackSpeed) {
+                    // Valid playback: log segment
+                    watchProgress[currentPlayingUid].segments.push([lastTimestampCheckpoint, currentPos]);
                 }
+                
+                watchProgress[currentPlayingUid].lastPosition = currentPos;
                 lastTimestampCheckpoint = currentPos;
-                localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
+                
+                // Save intermittently to prevent data loss
+                if (Math.floor(currentPos) % 5 === 0) {
+                    localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
+                }
 
                 evaluateWatchCompletion(totalSpan);
             }, 1000);
         }
 
         function triggerExternalFallbackTimer() {
-            // High Fidelity Active Window Focus Fallback Tracker
-            const estimatedSpan = 600; // 10 minute benchmark fallback
-            if (!watchProgress[currentPlayingUid]) {
-                watchProgress[currentPlayingUid] = { secondsWatched: 0, totalDuration: estimatedSpan, unlocked: false };
+            const estimatedSpan = 600; 
+            if (watchProgress[currentPlayingUid].totalDuration === 0) {
+                watchProgress[currentPlayingUid].totalDuration = estimatedSpan;
+                updateProgress(currentPathContext);
             }
             
             trackingHeartbeat = setInterval(() => {
                 if (document.hasFocus()) {
-                    watchProgress[currentPlayingUid].secondsWatched += 1;
-                    watchProgress[currentPlayingUid].totalDuration = estimatedSpan;
+                    let lastPos = watchProgress[currentPlayingUid].lastPosition || 0;
+                    let currentPos = lastPos + 1;
+                    watchProgress[currentPlayingUid].segments.push([lastPos, currentPos]);
+                    watchProgress[currentPlayingUid].lastPosition = currentPos;
                     localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
                     evaluateWatchCompletion(estimatedSpan);
                 } else {
@@ -859,8 +913,8 @@
         }
 
         function evaluateWatchCompletion(totalSpan) {
-            const requirementGoal = Math.max(0, totalSpan - 60);
-            const verifiedAccumulated = watchProgress[currentPlayingUid].secondsWatched;
+            const requirementGoal = Math.max(0, totalSpan - (totalSpan * 0.05)); // Require 95% 
+            const verifiedAccumulated = mergeSegmentsAndCalculateTotal(watchProgress[currentPlayingUid].segments);
             const remainingInterval = Math.max(0, requirementGoal - verifiedAccumulated);
 
             if (remainingInterval <= 0) {
@@ -872,7 +926,6 @@
                 
                 const targetBox = document.getElementById(currentPlayingUid);
                 if (targetBox) targetBox.removeAttribute('disabled');
-                clearInterval(trackingHeartbeat);
             } else {
                 const mins = Math.floor(remainingInterval / 60);
                 const secs = Math.floor(remainingInterval % 60);
@@ -884,25 +937,62 @@
                 `${Math.floor(verifiedAccumulated)}s / ${Math.floor(requirementGoal)}s acquired`;
         }
 
+        function savePlaybackPosition() {
+            if (currentPlayingUid && watchProgress[currentPlayingUid]) {
+                if (activeYtPlayer && typeof activeYtPlayer.getCurrentTime === 'function') {
+                    watchProgress[currentPlayingUid].lastPosition = activeYtPlayer.getCurrentTime();
+                } else if (activeHtml5Player) {
+                    watchProgress[currentPlayingUid].lastPosition = activeHtml5Player.currentTime;
+                }
+                localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
+            }
+        }
+
         function closePlayerModal() {
+            savePlaybackPosition();
             if (trackingHeartbeat) clearInterval(trackingHeartbeat);
             if (activeYtPlayer && typeof activeYtPlayer.destroy === 'function') activeYtPlayer.destroy();
             if (activeHtml5Player) { activeHtml5Player.pause(); activeHtml5Player.src = ""; }
             
             document.getElementById('player-modal').style.display = 'none';
-            // Perform automated refresh updates to global trackers layout UI
-            renderRoadmap('md');
-            renderRoadmap('smma');
+            isPlayerOpen = false;
+            currentPlayingUid = null;
+            
+            renderRoadmap(currentPathContext);
         }
+
+        // Keyboard Shortcuts for Seeking
+        window.addEventListener('keydown', (e) => {
+            if (!isPlayerOpen) return;
+            
+            const SEEK_AMOUNT = 5;
+            if (e.key === 'ArrowRight') {
+                if (activeYtPlayer && typeof activeYtPlayer.seekTo === 'function') {
+                    let newTime = activeYtPlayer.getCurrentTime() + SEEK_AMOUNT;
+                    activeYtPlayer.seekTo(newTime, true);
+                    lastTimestampCheckpoint = newTime;
+                } else if (activeHtml5Player) {
+                    activeHtml5Player.currentTime += SEEK_AMOUNT;
+                    lastTimestampCheckpoint = activeHtml5Player.currentTime;
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (activeYtPlayer && typeof activeYtPlayer.seekTo === 'function') {
+                    let newTime = Math.max(0, activeYtPlayer.getCurrentTime() - SEEK_AMOUNT);
+                    activeYtPlayer.seekTo(newTime, true);
+                    lastTimestampCheckpoint = newTime;
+                } else if (activeHtml5Player) {
+                    activeHtml5Player.currentTime = Math.max(0, activeHtml5Player.currentTime - SEEK_AMOUNT);
+                    lastTimestampCheckpoint = activeHtml5Player.currentTime;
+                }
+            }
+        });
 
         // UI Logic
         function switchTab(path) {
             currentPathContext = path;
-            // Update tabs
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelector(`[onclick="switchTab('${path}')"]`).classList.add('active');
 
-            // Update theme colors
             const root = document.documentElement;
             if (path === 'md') {
                 root.style.setProperty('--active-accent', 'var(--md-accent)');
@@ -910,9 +1000,9 @@
                 root.style.setProperty('--active-accent', 'var(--smma-accent)');
             }
 
-            // Update sections
             document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
             document.getElementById(`${path}-page`).classList.add('active');
+            renderRoadmap(path);
         }
 
         function toggleCheckbox(id, path) {
@@ -926,7 +1016,7 @@
             const data = roadmapData[path];
             let html = '';
 
-            data.forEach((monthData, monthIndex) => {
+            data.forEach((monthData) => {
                 html += `
                     <div class="month-card">
                         <div class="month-header">
@@ -943,46 +1033,62 @@
                             <ul class="checklist">
                     `;
 
-                    topic.videos.forEach((video, videoIndex) => {
-                        // Create unique ID for localStorage
+                    topic.videos.forEach((defaultVideoTitle, videoIndex) => {
                         const uid = `${path}-${topic.id}-v${videoIndex}`;
-                        
                         const attachedLink = savedLinks[uid];
+                        const displayTitle = customTitles[uid] || defaultVideoTitle;
+                        
                         let topicLabelElement = '';
                         let lockStateAttribute = '';
+                        let mgtIcons = '';
 
                         if (attachedLink) {
-                            const isUnlocked = watchProgress[uid] && watchProgress[uid].unlocked;
-                            // Enforce strict lock if not verified and not historically checked off
+                            initializeProgressObj(uid);
+                            const isUnlocked = watchProgress[uid].unlocked;
                             if (!isUnlocked && !savedProgress[uid]) {
                                 lockStateAttribute = 'disabled';
                             }
                             
                             topicLabelElement = `
-                                <span onclick="event.stopPropagation(); initiatePlayback('${uid}', '${video.replace(/'/g, "\\'")}')" 
-                                      style="color: var(--active-accent); text-decoration: underline; cursor: pointer; font-weight: 500;">
-                                    ${video} 🔗
+                                <span onclick="event.stopPropagation(); initiatePlayback('${uid}', '${defaultVideoTitle.replace(/'/g, "\\'")}')" 
+                                      style="color: var(--active-accent); text-decoration: underline; font-weight: 500;">
+                                    ${displayTitle} 🎥
                                 </span>`;
+                                
+                            mgtIcons = `
+                                <div class="management-icons">
+                                    <span class="mgt-icon" title="Rename Title" onclick="renameCustomTitle('${uid}', '${defaultVideoTitle.replace(/'/g, "\\'")}')">✏️</span>
+                                    <span class="mgt-icon active-danger" title="Remove Link" onclick="deleteCustomLink('${uid}')">🗑️</span>
+                                </div>
+                            `;
                         } else {
-                            // Baseline standard execution behavior for untracked manual nodes
-                            // strictly locking checkboxes that have no video attached
                             lockStateAttribute = 'disabled';
-                            topicLabelElement = `<span>${video}</span>`;
+                            topicLabelElement = `<span>${displayTitle}</span>`;
                             
-                            // Instantly overwrite any erroneously saved checks if the video is untracked
                             if (savedProgress[uid]) {
                                 savedProgress[uid] = false;
                                 localStorage.setItem('tracker_progress', JSON.stringify(savedProgress));
                             }
+                            
+                            mgtIcons = `
+                                <div class="management-icons">
+                                    <span class="mgt-icon" title="Rename Title" onclick="renameCustomTitle('${uid}', '${defaultVideoTitle.replace(/'/g, "\\'")}')">✏️</span>
+                                    <span class="mgt-icon" title="Attach Video" onclick="attachLinkPrompt('${uid}')">🔗</span>
+                                    <span class="mgt-icon disabled" title="No Link Attached">🗑️</span>
+                                </div>
+                            `;
                         }
                         
                         const isChecked = savedProgress[uid] ? 'checked' : '';
                         
                         html += `
+                            <div class="check-item-container">
                                 <label class="check-item">
                                     <input type="checkbox" id="${uid}" ${isChecked} ${lockStateAttribute} onchange="toggleCheckbox('${uid}', '${path}')">
                                     ${topicLabelElement}
                                 </label>
+                                ${mgtIcons}
+                            </div>
                         `;
                     });
 
@@ -1000,35 +1106,59 @@
         }
 
         function updateProgress(path) {
-            let total = 0;
-            let completed = 0;
+            let totalTopics = 0;
+            let completedTopics = 0;
+            
+            let totalVideoSecRequired = 0;
+            let totalVideoSecWatched = 0;
+            let uploadedCount = 0;
 
-            // Iterate over the specific path in the data model
             roadmapData[path].forEach(month => {
                 month.topics.forEach(topic => {
                     topic.videos.forEach((video, index) => {
-                        total++;
+                        totalTopics++;
                         const uid = `${path}-${topic.id}-v${index}`;
-                        if (savedProgress[uid]) {
-                            completed++;
+                        
+                        if (savedProgress[uid]) completedTopics++;
+
+                        if (savedLinks[uid]) {
+                            uploadedCount++;
+                            if (watchProgress[uid]) {
+                                totalVideoSecRequired += (watchProgress[uid].totalDuration || 0);
+                                totalVideoSecWatched += mergeSegmentsAndCalculateTotal(watchProgress[uid].segments);
+                            }
                         }
                     });
                 });
             });
 
-            const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
-            const remaining = total - completed;
+            // Progress Bar 1: Topic Completion
+            const topicPercent = totalTopics === 0 ? 0 : Math.round((completedTopics / totalTopics) * 100);
+            document.getElementById(`${path}-count`).innerText = `${completedTopics} / ${totalTopics} Videos Finished (${totalTopics - completedTopics} Remaining)`;
+            document.getElementById(`${path}-fill`).style.width = `${topicPercent}%`;
 
-            document.getElementById(`${path}-percent`).innerText = `${percent}% Complete`;
-            document.getElementById(`${path}-count`).innerText = `${completed} / ${total} Videos Finished (${remaining} Remaining)`;
-            document.getElementById(`${path}-fill`).style.width = `${percent}%`;
+            // Progress Bar 2: Video Watch Progress
+            let watchPercent = 0;
+            if (totalVideoSecRequired > 0) {
+                watchPercent = Math.min(100, Math.round((totalVideoSecWatched / totalVideoSecRequired) * 100));
+            }
+            document.getElementById(`${path}-watch-percent`).innerText = `${watchPercent}%`;
+            document.getElementById(`${path}-watch-fill`).style.width = `${watchPercent}%`;
+
+            // Display logic: Hide topic completion if all links are attached
+            const topicWrapper = document.getElementById(`${path}-completion-wrapper`);
+            if (uploadedCount === totalTopics && totalTopics > 0) {
+                topicWrapper.style.display = 'none';
+            } else {
+                topicWrapper.style.display = 'block';
+            }
         }
 
         // Initialize App
         function init() {
             renderRoadmap('md');
             renderRoadmap('smma');
-            switchTab('md'); // Default tab
+            switchTab('md'); 
         }
 
         window.onload = init;
