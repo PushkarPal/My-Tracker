@@ -317,7 +317,7 @@
 
         .mgt-icon {
             cursor: pointer;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             filter: grayscale(100%);
             opacity: 0.6;
             transition: all 0.2s;
@@ -325,24 +325,33 @@
 
         .mgt-icon:hover {
             opacity: 1;
-            filter: grayscale(0%);
-            transform: scale(1.1);
+            transform: scale(1.15);
+        }
+
+        /* Orangish Pencil */
+        .edit-icon:hover {
+            filter: grayscale(0%) drop-shadow(0 0 2px rgba(249, 115, 22, 0.4));
+        }
+
+        /* Blue Link */
+        .link-icon:hover {
+            filter: grayscale(0%) sepia(100%) hue-rotate(190deg) saturate(500%);
+        }
+
+        /* Red Dustbin */
+        .trash-icon:hover {
+            filter: grayscale(0%) sepia(100%) hue-rotate(320deg) saturate(500%);
         }
 
         .mgt-icon.disabled {
             cursor: not-allowed;
             opacity: 0.2;
+            filter: grayscale(100%);
         }
 
         .mgt-icon.disabled:hover {
             transform: none;
             filter: grayscale(100%);
-        }
-
-        .mgt-icon.active-danger {
-            filter: grayscale(0%);
-            opacity: 1;
-            color: #ef4444;
         }
 
         /* Modal Subsystem UI */
@@ -427,7 +436,7 @@
             <button class="tab-btn active" data-target="md-page" onclick="switchTab('md')">Motion Design</button>
             <button class="tab-btn" data-target="smma-page" onclick="switchTab('smma')">Social Media Marketing Agency</button>
         </div>
-        <button class="add-link-btn" onclick="toggleManagementMode()" id="manage-btn">⚙️ Link Management Mode</button>
+        <button class="add-link-btn" onclick="toggleManagementMode()" id="manage-btn">⚙️ Link Management</button>
     </nav>
 
     <main id="app-main">
@@ -661,11 +670,11 @@
             
             if (isManagementMode) {
                 btn.classList.add('active-mode');
-                btn.innerText = "❌ Exit Management Mode";
+                btn.innerText = "❌ Exit Management";
                 main.classList.add('management-mode-active');
             } else {
                 btn.classList.remove('active-mode');
-                btn.innerText = "⚙️ Link Management Mode";
+                btn.innerText = "⚙️ Link Management";
                 main.classList.remove('management-mode-active');
             }
             renderRoadmap(currentPathContext);
@@ -689,10 +698,61 @@
                     savedProgress[uid] = false;
                 }
                 savedLinks[uid] = url.trim();
+                
+                // Ensure the progress object is initialized before saving
+                initializeProgressObj(uid);
+                
                 localStorage.setItem('tracker_links', JSON.stringify(savedLinks));
                 localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
                 localStorage.setItem('tracker_progress', JSON.stringify(savedProgress));
                 renderRoadmap(currentPathContext);
+                
+                // Fetch the duration silently in the background
+                fetchVideoMetadataInBackground(uid, url.trim());
+            }
+        }
+
+        function fetchVideoMetadataInBackground(uid, url) {
+            const ytId = getYouTubeId(url);
+            const isDirectVideo = url.match(/\.(mp4|webm|ogg)($|\?)/i);
+
+            if (ytId) {
+                // Create an invisible container to load the YouTube API
+                const hiddenDiv = document.createElement('div');
+                hiddenDiv.id = 'bg-fetcher-' + uid;
+                hiddenDiv.style.position = 'absolute';
+                hiddenDiv.style.top = '-9999px';
+                document.body.appendChild(hiddenDiv);
+
+                if (window.YT && window.YT.Player) {
+                    new YT.Player(hiddenDiv.id, {
+                        height: '1', width: '1', videoId: ytId,
+                        events: {
+                            'onReady': (e) => {
+                                const duration = e.target.getDuration();
+                                if (duration > 0) {
+                                    watchProgress[uid].totalDuration = duration;
+                                    localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
+                                    updateProgress(currentPathContext);
+                                }
+                                e.target.destroy();
+                                const wrapper = document.getElementById('bg-fetcher-' + uid);
+                                if (wrapper) wrapper.remove();
+                            }
+                        }
+                    });
+                }
+            } else if (isDirectVideo) {
+                // Silently fetch native HTML5 duration
+                const video = document.createElement('video');
+                video.src = url;
+                video.onloadedmetadata = () => {
+                    if (video.duration > 0) {
+                        watchProgress[uid].totalDuration = video.duration;
+                        localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
+                        updateProgress(currentPathContext);
+                    }
+                };
             }
         }
 
@@ -1057,8 +1117,8 @@
                                 
                             mgtIcons = `
                                 <div class="management-icons">
-                                    <span class="mgt-icon" title="Rename Title" onclick="renameCustomTitle('${uid}', '${defaultVideoTitle.replace(/'/g, "\\'")}')">✏️</span>
-                                    <span class="mgt-icon active-danger" title="Remove Link" onclick="deleteCustomLink('${uid}')">🗑️</span>
+                                    <span class="mgt-icon edit-icon" title="Rename Title" onclick="renameCustomTitle('${uid}', '${defaultVideoTitle.replace(/'/g, "\\'")}')">✏️</span>
+                                    <span class="mgt-icon trash-icon" title="Remove Link" onclick="deleteCustomLink('${uid}')">🗑️</span>
                                 </div>
                             `;
                         } else {
@@ -1072,8 +1132,8 @@
                             
                             mgtIcons = `
                                 <div class="management-icons">
-                                    <span class="mgt-icon" title="Rename Title" onclick="renameCustomTitle('${uid}', '${defaultVideoTitle.replace(/'/g, "\\'")}')">✏️</span>
-                                    <span class="mgt-icon" title="Attach Video" onclick="attachLinkPrompt('${uid}')">🔗</span>
+                                    <span class="mgt-icon edit-icon" title="Rename Title" onclick="renameCustomTitle('${uid}', '${defaultVideoTitle.replace(/'/g, "\\'")}')">✏️</span>
+                                    <span class="mgt-icon link-icon" title="Attach Video" onclick="attachLinkPrompt('${uid}')">🔗</span>
                                     <span class="mgt-icon disabled" title="No Link Attached">🗑️</span>
                                 </div>
                             `;
