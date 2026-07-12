@@ -954,6 +954,10 @@
         }
 
         function igniteVerificationLoop(engineType) {
+            // 1. Get the exact position where you left off (or 0 if brand new)
+            const startPos = watchProgress[currentPlayingUid].lastPosition || 0;
+            let strictlyInitialized = false;
+
             trackingHeartbeat = setInterval(() => {
                 let currentPos = 0;
                 let totalSpan = 0;
@@ -971,6 +975,17 @@
 
                 if (totalSpan <= 0 || isNaN(totalSpan) || !isPlaying) return;
 
+                // 2. Safe Guard: Wait until the player has successfully loaded past or at your saved position
+                if (!strictlyInitialized) {
+                    if (startPos === 0 || currentPos >= startPos - 1) {
+                        lastTimestampCheckpoint = currentPos;
+                        strictlyInitialized = true;
+                    } else {
+                        // The player is still temporarily reporting 0 while buffering/loading, skip this tick safely
+                        return; 
+                    }
+                }
+
                 const delta = currentPos - lastTimestampCheckpoint;
 
                 // Find the furthest timestamp you have watched in this video so far
@@ -979,26 +994,26 @@
                     watchProgress[currentPlayingUid].segments.forEach(seg => {
                         if (seg[1] > maxWatchedTime) maxWatchedTime = seg[1];
                     });
-                }                    
+                }
+
                 // Block large forward skips ONLY if jumping past what you've already watched
                 if (delta >= 30 && currentPos > maxWatchedTime) {
                     if (engineType === 'youtube') activeYtPlayer.pauseVideo();
-                    if (engineType === 'youtube') activeYtPlayer.pauseVideo();
-
+                    else if (engineType === 'html5') activeHtml5Player.pause();
+            
                     const fallbackPosition = lastTimestampCheckpoint;
                     showSkipWarning(fallbackPosition, engineType);
-                    
-                    currentPos = fallbackPosition;
+                
+                    currentPos = fallbackPosition; 
                 } 
                 // Detect legitimate real-time watch vs seeking
                 else if (delta > 0 && delta <= 6 * userPlaybackSpeed) {
                     watchProgress[currentPlayingUid].segments.push([lastTimestampCheckpoint, currentPos]);
                 }
-                
+        
                 watchProgress[currentPlayingUid].lastPosition = currentPos;
                 lastTimestampCheckpoint = currentPos;
-                
-                // Save intermittently to prevent data loss
+        
                 if (Math.floor(currentPos) % 5 === 0) {
                     localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
                 }
