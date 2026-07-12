@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Learning Tracker</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --surface-hover: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --md-accent: #06b6d4; 
+            --smma-accent: #8b5cf6; 
+            --active-accent: var(--md-accent);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-tabs { display: flex; gap: 2rem; }
+
+        .tab-btn {
+            background: none; border: none; color: var(--text-muted);
+            font-size: 1.1rem; font-weight: 600; padding: 1.2rem 1rem;
+            cursor: pointer; transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn:hover { color: var(--text-main); }
+        .tab-btn.active { color: var(--text-main); border-bottom: 3px solid var(--active-accent); }
+
+        .add-link-btn {
+            position: absolute; right: 2rem; background-color: var(--surface-hover);
+            color: var(--text-main); border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
+            font-weight: 600; font-size: 0.9rem; transition: all 0.2s ease;
+        }
+
+        .add-link-btn:hover, .add-link-btn.active-mode {
+            background-color: var(--active-accent); border-color: var(--active-accent);
+        }
+
+        /* Main Container */
+        main {
+            max-width: 1000px; margin: 0 auto; padding: 2rem 1rem;
+            width: 100%; flex-grow: 1;
+        }
+
+        .page-section { display: none; animation: fadeIn 0.4s ease; }
+        .page-section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Dashboard Header & Progress Bars */
+        .dashboard-header {
+            background-color: var(--surface-color); border-radius: 12px;
+            padding: 2rem; margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-title { font-size: 2rem; margin-bottom: 0.5rem; }
+        .dashboard-meta { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; }
+        .progress-container { margin-top: 1rem; display: flex; flex-direction: column; gap: 1.2rem; }
+        .progress-bar-wrapper { display: block; }
+
+        .progress-stats { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem; font-weight: 500; }
+        .progress-track { background-color: var(--border-color); border-radius: 99px; height: 10px; width: 100%; overflow: hidden; }
+        .progress-fill { background-color: var(--active-accent); height: 100%; width: 0%; border-radius: 99px; transition: width 0.5s ease-out; }
+
+        /* Timeline & Months */
+        .timeline { display: flex; flex-direction: column; gap: 2rem; }
+        .month-card {
+            background-color: var(--surface-color); border-radius: 12px;
+            border-left: 4px solid var(--active-accent); padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .month-header { margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; }
+        .month-title { font-size: 1.4rem; color: var(--active-accent); margin-bottom: 0.3rem; }
+        .month-milestone { font-size: 0.9rem; color: var(--text-muted); font-style: italic; }
+
+        /* Topics & Checklists */
+        .topic-group { margin-bottom: 1.5rem; }
+        .topic-title { font-size: 1.1rem; margin-bottom: 0.2rem; }
+        .topic-insight { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem; padding-left: 1rem; border-left: 2px solid var(--border-color); }
+        .checklist { list-style: none; padding-left: 0.5rem; }
+
+        .check-item-container {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 0.6rem; padding: 0.4rem; border-radius: 6px; transition: background 0.2s ease;
+        }
+        .check-item-container:hover { background-color: var(--surface-hover); }
+
+        .check-item { display: flex; align-items: flex-start; cursor: pointer; flex-grow: 1; }
+        .check-item input[type="checkbox"] {
+            appearance: none; -webkit-appearance: none; width: 18px; height: 18px;
+            border: 2px solid var(--text-muted); border-radius: 4px; margin-right: 10px;
+            margin-top: 2px; cursor: pointer; position: relative; flex-shrink: 0; transition: all 0.2s ease;
+        }
+
+        .check-item input[type="checkbox"]:checked { background-color: var(--active-accent); border-color: var(--active-accent); }
+        .check-item input[type="checkbox"]:checked::after {
+            content: '✓'; position: absolute; color: #fff; font-size: 12px;
+            font-weight: bold; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        }
+
+        .check-item input[type="checkbox"]:disabled {
+            border-color: #475569; background-color: #1e293b; cursor: not-allowed; opacity: 0.5;
+        }
+
+        .check-item span { color: var(--text-main); transition: color 0.2s ease; }
+        .check-item input[type="checkbox"]:checked + span { color: var(--text-muted); text-decoration: line-through; }
+
+        /* Link Management Icons */
+        .management-icons { display: flex; gap: 0.8rem; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .management-mode-active .management-icons { opacity: 1; pointer-events: auto; }
+
+        .mgt-icon { cursor: pointer; font-size: 1.2rem; filter: grayscale(100%); opacity: 0.6; transition: all 0.2s; }
+        .mgt-icon:hover { opacity: 1; transform: scale(1.15); }
+        .edit-icon:hover { filter: grayscale(0%) drop-shadow(0 0 2px rgba(249, 115, 22, 0.4)); }
+        .link-icon:hover { filter: grayscale(0%) sepia(100%) hue-rotate(190deg) saturate(500%); }
+        .trash-icon:hover { filter: grayscale(0%) sepia(100%) hue-rotate(320deg) saturate(500%); }
+
+        .mgt-icon.disabled { cursor: not-allowed; opacity: 0.2; filter: grayscale(100%); }
+        .mgt-icon.disabled:hover { transform: none; filter: grayscale(100%); }
+
+        /* Modal Subsystem UI */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-content {
+            background-color: var(--surface-color); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 2rem; width: 100%; max-width: 550px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+        .modal-content.large { max-width: 800px; width: 92%; }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.8rem; }
+        .modal-title { font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
+        .close-modal { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+        .close-modal:hover { color: var(--text-main); }
+
+        /* Player Utilities */
+        #player-container {
+            position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden;
+            background: #000; border-radius: 8px; border: 1px solid var(--border-color);
+        }
+        
+        .player-viewport-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        .player-controls-row { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; gap: 1rem; }
+        
+        .speed-selector {
+            background-color: var(--bg-color); color: var(--text-main);
+            border: 1px solid var(--border-color); padding: 0.4rem; border-radius: 6px; outline: none;
+        }
+        .speed-selector:focus { border-color: var(--active-accent); }
+        
+        .player-status-group { display: flex; flex-direction: column; gap: 0.2rem; }
+        .player-status-text { font-weight: 600; color: var(--active-accent); display: none; }
+        .player-progress-text { font-size: 0.85rem; color: var(--text-muted); }
+        .player-shortcuts-text { display: none; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; }
+
+        /* Dynamic Popup Elements */
+        .skip-warning-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 50; text-align: center;
+            padding: 2rem; color: #f8fafc; border-radius: 8px;
+        }
+        .skip-warning-title { color: #ef4444; margin-bottom: 1rem; font-size: 1.5rem; }
+        .skip-warning-text { margin-bottom: 2rem; max-width: 400px; line-height: 1.5; }
+        .skip-warning-btn { background-color: var(--active-accent); color: #fff; border: none; padding: 0.8rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 1rem; transition: opacity 0.2s; }
+        .skip-warning-btn:hover { opacity: 0.9; }
+
+        .external-fallback-container {
+            position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 2rem; text-align: center; color: var(--text-muted);
+        }
+        .external-fallback-btn { background: var(--active-accent); padding: 10px 15px; text-decoration: none; color: #fff; border-radius: 5px; }
+
+        .bg-fetcher-hidden { position: absolute; top: -9999px; }
+
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-tabs">
+            <button class="tab-btn active" data-target="md-page" onclick="switchTab('md')">Motion Design</button>
+            <button class="tab-btn" data-target="smma-page" onclick="switchTab('smma')">Social Media Marketing Agency</button>
+        </div>
+        <button class="add-link-btn" onclick="toggleManagementMode()" id="manage-btn">⚙️ Link Management</button>
+    </nav>
+
+    <main id="app-main">
+        <!-- Motion Design Section -->
+        <div id="md-page" class="page-section active">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Motion Design Roadmap</h1>
+                <p class="dashboard-meta">Duration: 3 Months | Goal: Industry-ready and capable of earning.</p>
+                <div class="progress-container">
+                    <div class="progress-bar-wrapper" id="md-completion-wrapper">
+                        <div class="progress-stats">
+                            <span>Topic Completion</span>
+                            <span id="md-count">0 / 0 Videos Finished (0 Remaining)</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="md-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-wrapper" id="md-watch-wrapper">
+                        <div class="progress-stats">
+                            <span>Video Watch Progress (Uploaded Only)</span>
+                            <span id="md-watch-percent">0%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="md-watch-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline" id="md-timeline"></div>
+        </div>
+
+        <!-- SMMA Section -->
+        <div id="smma-page" class="page-section">
+            <div class="dashboard-header">
+                <h1 class="dashboard-title">Social Media Marketing Agency Roadmap</h1>
+                <p class="dashboard-meta">Duration: 6 Months | Goal: Fully capable of earning through your agency.</p>
+                <div class="progress-container">
+                    <div class="progress-bar-wrapper" id="smma-completion-wrapper">
+                        <div class="progress-stats">
+                            <span>Topic Completion</span>
+                            <span id="smma-count">0 / 0 Videos Finished (0 Remaining)</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="smma-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                    <div class="progress-bar-wrapper" id="smma-watch-wrapper">
+                        <div class="progress-stats">
+                            <span>Video Watch Progress (Uploaded Only)</span>
+                            <span id="smma-watch-percent">0%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="smma-watch-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="timeline" id="smma-timeline"></div>
+        </div>
+    </main>
+
+    <!-- Media Theater Modals Player Container -->
+    <div id="player-modal" class="modal-overlay">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2 class="modal-title" id="player-video-title">Media Streaming Portal</h2>
+                <button class="close-modal" onclick="closePlayerModal()">&times;</button>
+            </div>
+            
+            <div id="player-container">
+                <div id="media-viewport-placeholder" class="player-viewport-layer"></div>
+            </div>
+            
+            <div class="player-controls-row">
+                <div class="player-status-group">
+                    <span id="player-status" class="player-status-text">Remaining target watch time: Calculating...</span>
+                    <span id="player-progress-bar-text" class="player-progress-text">0s / 0s required</span>
+                </div>
+                <div>
+                    <label for="speed-select" style="font-size:0.85rem; color:var(--text-muted); margin-right:5px;">Speed:</label>
+                    <select id="speed-select" class="speed-selector" onchange="changePlaybackSpeed()">
+                        <option value="0.25">0.25×</option>
+                        <option value="0.5">0.5×</option>
+                        <option value="1" selected>1×</option>
+                        <option value="1.25">1.25×</option>
+                        <option value="1.5">1.5×</option>
+                        <option value="1.75">1.75×</option>
+                        <option value="2">2×</option>
+                        <option value="2.25">2.25×</option>
+                        <option value="2.5">2.5×</option>
+                        <option value="2.75">2.75×</option>
+                        <option value="3">3×</option>
+                    </select>
+                </div>
+            </div>
+            <p class="player-shortcuts-text">Shortcuts: Left Arrow (-5s) | Right Arrow (+5s)</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM & LocalStorage Helpers
+        const $ = id => document.getElementById(id);
+        const saveLocal = (key, data) => localStorage.setItem(key, JSON.stringify(data));
+        const getLocal = (key, fallback) => JSON.parse(localStorage.getItem(key)) || fallback;
+
+        // Database Structure for Expandability
+        const roadmapData = {
+            md: [
+                {
+                    month: "Month 1: The Foundation", milestone: "Milestone: Create your first cohesive animated sequence.",
+                    topics: [
+                        { id: "md-ae", title: "After Effects basics", insight: "After Effects is the industry standard — start here", videos: ["Basics of AE (1)", "Basics of AE (2)"] },
+                        { id: "md-shape", title: "Shape layers", insight: "Shape layers are the building blocks of 90% of motion graphics", videos: ["How to animate shape layers ?", "How to use shape layers ?"] },
+                        { id: "md-key", title: "Keyframes", insight: "Keyframes are the language of all motion design", videos: ["Basics of keyframes (1)", "Basics of keyframes (2)"] },
+                        { id: "md-trans", title: "Transitions", insight: "Smooth transitions are invisible, jarring ones are all you see", videos: ["How to do transistions ?", "How to do transistions ? (2)"] }
+                    ]
+                },
+                {
+                    month: "Month 2: Advanced Techniques & Polish", milestone: "Milestone: Complete a complex mock project utilizing graphs and audio.",
+                    topics: [
+                        { id: "md-graph", title: "Graph editor", insight: "The graph editor is what separates amateurs from pros", videos: ["Graph editor Explained", "Graph editor tutorial"] },
+                        { id: "md-typo", title: "Typography animation", insight: "Animated type is everywhere — master it early", videos: ["How to animate text (1)", "How to animate text (2)"] },
+                        { id: "md-cam", title: "3D camera basics", insight: "3D depth makes flat motion feel alive", videos: ["What is 3D camera ?", "Basics of 3D camera"] },
+                        { id: "md-sound", title: "Sound sync", insight: "Motion that hits on the beat is universally satisfying", videos: ["How to sync sound design for motion graphics ?", "Role of sound design in Motion graphics"] },
+                        { id: "md-exp", title: "Expressions basics", insight: "Expressions automate your animations and save hours", videos: ["What is Expressions in AE ?", "Expression breif explained"] }
+                    ]
+                },
+                {
+                    month: "Month 3: Business & Client Acquisition", milestone: "Milestone: Launch portfolio and execute your first client outreach campaign.",
+                    topics: [
+                        { id: "md-port", title: "Motion portfolio", insight: "Your portfolio speaks louder than any pitch", videos: ["How to build portfolio ? (1)", "How to build portfolio ? (2)"] },
+                        { id: "md-clients", title: "How to get clients", insight: "Agencies always need motion designers — cold email them", videos: ["How to get Clients ? (1)", "How to get Clients ? (2)"] }
+                    ]
+                }
+            ],
+            smma: [
+                {
+                    month: "Month 1: Strategy & Avatar", milestone: "Milestone: Lock in your niche and understand exactly who you serve.",
+                    topics: [
+                        { id: "smma-niche", title: "Pick niche", insight: "A niche Social Media Marketing Agency earns 3x more than a generalist one", videos: ["How to pick a niche ?", "How to pick a niche (2)"] },
+                        { id: "smma-icp", title: "Understand ICP", insight: "Ideal Client Profile = the person you can get the best results for", videos: ["How to understand ideal customer profile ?"] }
+                    ]
+                },
+                {
+                    month: "Month 2: Packaging & Systems", milestone: "Milestone: Define an irresistible offer and systematize your delivery.",
+                    topics: [
+                        { id: "smma-offer", title: "Define offer", insight: "Make your offer so specific a client immediately knows it's for them", videos: ["How to define our offer?"] },
+                        { id: "smma-delivery", title: "Delivery workflow", insight: "Systemize delivery so quality doesn't depend on your mood", videos: ["How to Deliver Properly ?"] },
+                        { id: "smma-onboard", title: "Client onboarding", insight: "A smooth onboarding sets the tone for the entire relationship", videos: ["Entire onboarding process", "How to onboard clients?"] }
+                    ]
+                },
+                {
+                    month: "Month 3: Lead Machine", milestone: "Milestone: Set up a consistent engine for generating prospects.",
+                    topics: [
+                        { id: "smma-content", title: "Create content system", insight: "Build a repeatable content engine, not a one-off campaign", videos: ["How to create content for social media?", "Content System Advice"] },
+                        { id: "smma-leads", title: "Lead generation", insight: "Lead gen is the fuel — without it, the agency stalls", videos: ["How to create lead generations?", "How to get leads?"] }
+                    ]
+                },
+                {
+                    month: "Month 4: The Hunt", milestone: "Milestone: Launch outreach campaigns and book your first meetings.",
+                    topics: [
+                        { id: "smma-outreach", title: "Outreach", insight: "Volume + personalization + follow-up = booked calls", videos: ["Understanding of Cold Outreach", "Basics of cold outreaching"] }
+                    ]
+                },
+                {
+                    month: "Month 5: Closing Deals", milestone: "Milestone: Conduct sales calls and land your first paying client.",
+                    topics: [
+                        { id: "smma-sales", title: "Sales calls", insight: "Ask more questions than you answer — listening closes deals", videos: ["How does the entire sales process look?"] },
+                        { id: "smma-clients", title: "How to get clients", insight: "Cold DM + cold email + referral loop = unstoppable pipeline", videos: ["How to get clients (1)", "How to get clients (2)", "How to get clients (3)", "How to get clients (1)"] }
+                    ]
+                },
+                {
+                    month: "Month 6: Results & Growth", milestone: "Milestone: Deliver outstanding ROI and start systematically scaling.",
+                    topics: [
+                        { id: "smma-scale", title: "Reporting + scaling", insight: "Show ROI clearly, then ask for referrals — both grow the agency", videos: ["Reporting and Scaling", "how to scale systematically"] }
+                    ]
+                }
+            ]
+        };
+
+        // State Management
+        let savedProgress = getLocal('tracker_progress', {});
+        let savedLinks = getLocal('tracker_links', {});
+        let watchProgress = getLocal('tracker_watch_progress', {});
+        let customTitles = getLocal('tracker_custom_titles', {});
+        let userPlaybackSpeed = parseFloat(localStorage.getItem('tracker_playback_speed')) || 1;
+        
+        let isManagementMode = false;
+        let currentPathContext = 'md';
+
+        // Active Player Trackers
+        let activeYtPlayer = null;
+        let activeHtml5Player = null;
+        let trackingHeartbeat = null;
+        let currentPlayingUid = null;
+        let lastTimestampCheckpoint = 0;
+        let isPlayerOpen = false;
+
+        function initializeProgressObj(uid) {
+            watchProgress[uid] ??= { segments: [], totalDuration: 0, unlocked: false, lastPosition: 0 };
+            watchProgress[uid].segments ??= [];
+            if (typeof watchProgress[uid].lastPosition !== 'number') watchProgress[uid].lastPosition = 0;
+        }
+
+        // Load YouTube Iframe Script
+        if (!window.YT) {
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+
+        const getYouTubeId = (url) => {
+            const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+            return (match && match[2].length === 11) ? match[2] : null;
+        };
+
+        // Management Mode
+        function toggleManagementMode() {
+            isManagementMode = !isManagementMode;
+            const btn = $('manage-btn');
+            const main = $('app-main');
+            
+            if (isManagementMode) {
+                btn.classList.add('active-mode');
+                btn.innerText = "❌ Exit Management";
+                main.classList.add('management-mode-active');
+            } else {
+                btn.classList.remove('active-mode');
+                btn.innerText = "⚙️ Link Management";
+                main.classList.remove('management-mode-active');
+            }
+            renderRoadmap(currentPathContext);
+        }
+
+        function renameCustomTitle(uid, currentTitle) {
+            const newTitle = prompt("Enter a new title for this topic:", customTitles[uid] || currentTitle);
+            if (newTitle && newTitle.trim()) {
+                customTitles[uid] = newTitle.trim();
+                saveLocal('tracker_custom_titles', customTitles);
+                renderRoadmap(currentPathContext);
+            }
+        }
+
+        function attachLinkPrompt(uid) {
+            const url = prompt("Enter a direct Video URL or YouTube link to attach:");
+            if (url && url.trim()) {
+                if (savedLinks[uid] && savedLinks[uid] !== url.trim()) {
+                    delete watchProgress[uid];
+                    savedProgress[uid] = false;
+                }
+                savedLinks[uid] = url.trim();
+                
+                initializeProgressObj(uid);
+                
+                saveLocal('tracker_links', savedLinks);
+                saveLocal('tracker_watch_progress', watchProgress);
+                saveLocal('tracker_progress', savedProgress);
+                renderRoadmap(currentPathContext);
+                
+                fetchVideoMetadataInBackground(uid, url.trim());
+            }
+        }
+
+        function fetchVideoMetadataInBackground(uid, url) {
+            const ytId = getYouTubeId(url);
+            
+            if (ytId) {
+                const hiddenDiv = document.createElement('div');
+                hiddenDiv.id = 'bg-fetcher-' + uid;
+                hiddenDiv.className = 'bg-fetcher-hidden';
+                document.body.appendChild(hiddenDiv);
+
+                if (window.YT?.Player) {
+                    new YT.Player(hiddenDiv.id, {
+                        height: '1', width: '1', videoId: ytId,
+                        events: {
+                            'onReady': (e) => {
+                                const duration = e.target.getDuration();
+                                if (duration > 0) {
+                                    watchProgress[uid].totalDuration = duration;
+                                    saveLocal('tracker_watch_progress', watchProgress);
+                                    updateProgress(currentPathContext);
+                                }
+                                e.target.destroy();
+                                $(hiddenDiv.id)?.remove();
+                            }
+                        }
+                    });
+                }
+            } else if (url.match(/\.(mp4|webm|ogg)($|\?)/i)) {
+                const video = document.createElement('video');
+                video.src = url;
+                video.onloadedmetadata = () => {
+                    if (video.duration > 0) {
+                        watchProgress[uid].totalDuration = video.duration;
+                        saveLocal('tracker_watch_progress', watchProgress);
+                        updateProgress(currentPathContext);
+                    }
+                };
+            }
+        }
+
+        function deleteCustomLink(uid) {
+            if (confirm("Are you sure you want to delete this link? All saved watch progress will be lost.")) {
+                delete savedLinks[uid];
+                delete watchProgress[uid];
+                savedProgress[uid] = false;
+                
+                saveLocal('tracker_links', savedLinks);
+                saveLocal('tracker_watch_progress', watchProgress);
+                saveLocal('tracker_progress', savedProgress);
+                renderRoadmap(currentPathContext);
+            }
+        }
+
+        // Segment Tracking Algorithm
+        function mergeSegmentsAndCalculateTotal(segments) {
+            if (!segments?.length) return 0;
+            let sorted = [...segments].sort((a, b) => a[0] - b[0]);
+            let merged = [sorted[0]];
+            
+            for (let i = 1; i < sorted.length; i++) {
+                let last = merged[merged.length - 1];
+                let current = sorted[i];
+                if (current[0] <= last[1]) last[1] = Math.max(last[1], current[1]);
+                else merged.push(current);
+            }
+            return merged.reduce((acc, seg) => acc + (seg[1] - seg[0]), 0);
+        }
+        
+        // Large Skip Warning Popup System
+        function showSkipWarning(safePosition, engineType) {
+            if ($('skip-warning-popup')) return;
+
+            const overlay = document.createElement('div');
+            overlay.id = 'skip-warning-popup';
+            overlay.className = 'skip-warning-overlay';
+            
+            overlay.innerHTML = `
+                <h3 class="skip-warning-title">Large Skips Not Allowed</h3>
+                <p class="skip-warning-text">To ensure completion verification, skips of 30 seconds or more are disabled. Please resume from your last verified position.</p>
+                <button id="return-btn" class="skip-warning-btn">Return to Last Viewed Position</button>
+            `;
+            
+            $('player-container').appendChild(overlay);
+
+            $('return-btn').addEventListener('click', () => {
+                if (engineType === 'youtube' && activeYtPlayer) {
+                    activeYtPlayer.seekTo(safePosition, true);
+                    activeYtPlayer.playVideo();
+                } else if (engineType === 'html5' && activeHtml5Player) {
+                    activeHtml5Player.currentTime = safePosition;
+                    activeHtml5Player.play();
+                }
+                lastTimestampCheckpoint = safePosition;
+                overlay.remove();
+            });
+        }
+
+        // Playback Architecture
+        function initiatePlayback(uid, defaultTitle) {
+            if (isManagementMode) return;
+            const url = savedLinks[uid];
+            if (!url) return;
+
+            currentPlayingUid = uid;
+            $('player-video-title').innerText = customTitles[uid] || defaultTitle;
+            $('player-modal').style.display = 'flex';
+            $('speed-select').value = userPlaybackSpeed;
+            isPlayerOpen = true;
+
+            const ytId = getYouTubeId(url);
+            const container = $('player-container');
+
+            if (trackingHeartbeat) clearInterval(trackingHeartbeat);
+            activeHtml5Player = activeYtPlayer = null;
+
+            initializeProgressObj(uid);
+            const startPos = watchProgress[uid].lastPosition || 0;
+
+            if (ytId) {
+                container.innerHTML = '<div id="media-viewport-placeholder" class="player-viewport-layer"></div>';
+                if (window.YT?.Player) instantiateYtIframe(ytId, startPos);
+                else window.onYouTubeIframeAPIReady = () => instantiateYtIframe(ytId, startPos);
+            } else if (url.match(/\.(mp4|webm|ogg)($|\?)/i)) {
+                container.innerHTML = `<video id="html5-core-engine" src="${url}" controls class="player-viewport-layer"></video>`;
+                instantiateHtml5Engine(startPos);
+            } else {
+                container.innerHTML = `
+                    <div class="external-fallback-container">
+                        <p style="margin-bottom:1rem;">External Resource Hub Page. Cross-origin videos must be watched natively.</p>
+                        <a href="${url}" target="_blank" class="external-fallback-btn" onclick="triggerExternalFallbackTimer()">Launch External Training Node</a>
+                    </div>`;
+                triggerExternalFallbackTimer();
+            }
+        }
+
+        function instantiateYtIframe(videoId, startPos) {
+            activeYtPlayer = new YT.Player('media-viewport-placeholder', {
+                height: '100%', width: '100%', videoId: videoId,
+                playerVars: { 'autoplay': 1, 'controls': 1, 'rel': 0, 'fs': 1, 'start': Math.floor(startPos), 'modestbranding': 1, 'disablekb': 1 },
+                events: {
+                    'onReady': (e) => {
+                        activeYtPlayer.setPlaybackRate(userPlaybackSpeed);
+                        lastTimestampCheckpoint = activeYtPlayer.getCurrentTime();
+                        igniteVerificationLoop('youtube');
+                        
+                        const duration = activeYtPlayer.getDuration();
+                        if (duration > 0 && watchProgress[currentPlayingUid].totalDuration !== duration) {
+                            watchProgress[currentPlayingUid].totalDuration = duration;
+                            saveLocal('tracker_watch_progress', watchProgress);
+                            updateProgress(currentPathContext);
+                        }
+                    },
+                    'onStateChange': (e) => {
+                        if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) savePlaybackPosition();
+                    },
+                    'onPlaybackRateChange': (e) => {
+                        userPlaybackSpeed = e.data;
+                        localStorage.setItem('tracker_playback_speed', userPlaybackSpeed);
+                        $('speed-select').value = userPlaybackSpeed;
+                    }
+                }
+            });
+        }
+
+        function instantiateHtml5Engine(startPos) {
+            activeHtml5Player = $('html5-core-engine');
+            activeHtml5Player.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') e.preventDefault();
+            });
+            activeHtml5Player.currentTime = startPos;
+            activeHtml5Player.playbackRate = userPlaybackSpeed;
+            activeHtml5Player.play().catch(()=>{});
+            
+            activeHtml5Player.onloadedmetadata = () => {
+                if (activeHtml5Player.duration > 0 && watchProgress[currentPlayingUid].totalDuration !== activeHtml5Player.duration) {
+                    watchProgress[currentPlayingUid].totalDuration = activeHtml5Player.duration;
+                    saveLocal('tracker_watch_progress', watchProgress);
+                    updateProgress(currentPathContext);
+                }
+            };
+            
+            activeHtml5Player.onpause = () => savePlaybackPosition();
+            activeHtml5Player.onended = () => savePlaybackPosition();
+            activeHtml5Player.onratechange = () => {
+                userPlaybackSpeed = activeHtml5Player.playbackRate;
+                localStorage.setItem('tracker_playback_speed', userPlaybackSpeed);
+                $('speed-select').value = userPlaybackSpeed;
+            };
+
+            igniteVerificationLoop('html5');
+        }
+
+        function changePlaybackSpeed() {
+            userPlaybackSpeed = parseFloat($('speed-select').value);
+            localStorage.setItem('tracker_playback_speed', userPlaybackSpeed);
+            
+            if (activeYtPlayer?.setPlaybackRate) activeYtPlayer.setPlaybackRate(userPlaybackSpeed);
+            else if (activeHtml5Player) activeHtml5Player.playbackRate = userPlaybackSpeed;
+        }
+
+        function igniteVerificationLoop(engineType) {
+            const pNode = watchProgress[currentPlayingUid];
+            const startPos = pNode?.lastPosition || 0;
+            let strictlyInitialized = false;
+
+            trackingHeartbeat = setInterval(() => {
+                let currentPos = 0, totalSpan = 0, isPlaying = false;
+
+                if (engineType === 'youtube' && activeYtPlayer?.getCurrentTime) {
+                    currentPos = activeYtPlayer.getCurrentTime();
+                    totalSpan = activeYtPlayer.getDuration();
+                    isPlaying = (activeYtPlayer.getPlayerState() === YT.PlayerState.PLAYING);
+                } else if (engineType === 'html5' && activeHtml5Player) {
+                    currentPos = activeHtml5Player.currentTime;
+                    totalSpan = activeHtml5Player.duration;
+                    isPlaying = !activeHtml5Player.paused && !activeHtml5Player.ended;
+                }
+
+                if (totalSpan <= 0 || isNaN(totalSpan) || !isPlaying) return;
+
+                if (!strictlyInitialized) {
+                    if (startPos === 0 || currentPos >= startPos - 1) {
+                        lastTimestampCheckpoint = currentPos;
+                        strictlyInitialized = true;
+                    } else return; 
+                }
+
+                const delta = currentPos - lastTimestampCheckpoint;
+                let maxWatchedTime = 0;
+                
+                if (pNode?.segments) {
+                    pNode.segments.forEach(seg => {
+                        if (seg[1] > maxWatchedTime) maxWatchedTime = seg[1];
+                    });
+                }
+
+                if (delta >= 30 && currentPos > maxWatchedTime) {
+                    if (engineType === 'youtube') activeYtPlayer.pauseVideo();
+                    else if (engineType === 'html5') activeHtml5Player.pause();
+            
+                    showSkipWarning(lastTimestampCheckpoint, engineType);
+                    currentPos = lastTimestampCheckpoint; 
+                } 
+                else if (delta > 0 && delta <= 6 * userPlaybackSpeed) {
+                    pNode.segments.push([lastTimestampCheckpoint, currentPos]);
+                }
+        
+                pNode.lastPosition = currentPos;
+                lastTimestampCheckpoint = currentPos;
+        
+                if (Math.floor(currentPos) % 5 === 0) {
+                    saveLocal('tracker_watch_progress', watchProgress);
+                }
+
+                evaluateWatchCompletion(totalSpan);
+            }, 1000);
+        }
+
+        function triggerExternalFallbackTimer() {
+            const pNode = watchProgress[currentPlayingUid];
+            if (pNode.totalDuration === 0) {
+                pNode.totalDuration = 600;
+                updateProgress(currentPathContext);
+            }
+            
+            trackingHeartbeat = setInterval(() => {
+                if (document.hasFocus()) {
+                    let currentPos = (pNode.lastPosition || 0) + 1;
+                    pNode.segments.push([pNode.lastPosition || 0, currentPos]);
+                    pNode.lastPosition = currentPos;
+                    saveLocal('tracker_watch_progress', watchProgress);
+                    evaluateWatchCompletion(600);
+                } else {
+                    $('player-status').innerText = "⏸️ Tracking paused — Return active window focus to dashboard tab.";
+                    $('player-status').style.color = "#fbbf24";
+                }
+            }, 1000);
+        }
+
+        function evaluateWatchCompletion(totalSpan) {
+            const pNode = watchProgress[currentPlayingUid];
+            const requirementGoal = Math.max(0, totalSpan - 120); 
+            const verifiedAccumulated = mergeSegmentsAndCalculateTotal(pNode.segments);
+            const remainingInterval = Math.max(0, requirementGoal - verifiedAccumulated);
+            const statusEl = $('player-status');
+
+            if (remainingInterval <= 0) {
+                pNode.unlocked = true;
+                saveLocal('tracker_watch_progress', watchProgress);
+                
+                statusEl.innerText = "🎉 Video Watch Target Achieved! Checkbox Unlocked.";
+                statusEl.style.color = "#4ade80";
+                
+                $(currentPlayingUid)?.removeAttribute('disabled');
+            } else {
+                statusEl.innerText = `Remaining required watch time: ${Math.floor(remainingInterval / 60)}m ${Math.floor(remainingInterval % 60)}s`;
+                statusEl.style.color = "var(--active-accent)";
+            }
+
+            $('player-progress-bar-text').innerText = `${Math.floor(Math.min(verifiedAccumulated, requirementGoal))}s / ${Math.floor(requirementGoal)}s acquired`;
+        }
+
+        function savePlaybackPosition() {
+            if (!currentPlayingUid || !watchProgress[currentPlayingUid]) return;
+            if (activeYtPlayer?.getCurrentTime) watchProgress[currentPlayingUid].lastPosition = activeYtPlayer.getCurrentTime();
+            else if (activeHtml5Player) watchProgress[currentPlayingUid].lastPosition = activeHtml5Player.currentTime;
+            
+            saveLocal('tracker_watch_progress', watchProgress);
+        }
+
+        function closePlayerModal() {
+            savePlaybackPosition();
+            if (trackingHeartbeat) clearInterval(trackingHeartbeat);
+            if (activeYtPlayer?.destroy) activeYtPlayer.destroy();
+            if (activeHtml5Player) { activeHtml5Player.pause(); activeHtml5Player.src = ""; }
+            
+            $('player-modal').style.display = 'none';
+            isPlayerOpen = false;
+            currentPlayingUid = null;
+            renderRoadmap(currentPathContext);
+        }
+
+        // Keyboard Shortcuts
+        window.addEventListener('keydown', (e) => {
+            if (!isPlayerOpen || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
+            e.preventDefault(); 
+            
+            let oldTime = 0, newTime = 0, playerRef = null;
+
+            if (activeYtPlayer?.getCurrentTime) {
+                oldTime = activeYtPlayer.getCurrentTime();
+                playerRef = 'yt';
+            } else if (activeHtml5Player) {
+                oldTime = activeHtml5Player.currentTime;
+                playerRef = 'html5';
+            }
+
+            if (!playerRef) return;
+
+            if (e.key === 'ArrowRight') {
+                newTime = oldTime + 5;
+                watchProgress[currentPlayingUid].segments.push([oldTime, newTime]);
+            } else {
+                newTime = Math.max(0, oldTime - 5);
+            }
+
+            if (playerRef === 'yt') activeYtPlayer.seekTo(newTime, true);
+            else activeHtml5Player.currentTime = newTime;
+            
+            lastTimestampCheckpoint = newTime;
+            watchProgress[currentPlayingUid].lastPosition = newTime;
+            
+            saveLocal('tracker_watch_progress', watchProgress);
+            
+            if (watchProgress[currentPlayingUid].totalDuration > 0) {
+                evaluateWatchCompletion(watchProgress[currentPlayingUid].totalDuration);
+            }
+        });
+
+        // UI Logic
+        function switchTab(path) {
+            currentPathContext = path;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[onclick="switchTab('${path}')"]`).classList.add('active');
+
+            document.documentElement.style.setProperty('--active-accent', path === 'md' ? 'var(--md-accent)' : 'var(--smma-accent)');
+
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+            $(`${path}-page`).classList.add('active');
+            renderRoadmap(path);
+        }
+
+        function toggleCheckbox(id, path) {
+            savedProgress[id] = $(id).checked;
+            saveLocal('tracker_progress', savedProgress);
+            updateProgress(path);
+        }
+
+        function renderRoadmap(path) {
+            let html = '';
+            
+            roadmapData[path].forEach((monthData) => {
+                html += `
+                    <div class="month-card">
+                        <div class="month-header">
+                            <h2 class="month-title">${monthData.month}</h2>
+                            <p class="month-milestone">${monthData.milestone}</p>
+                        </div>`;
+
+                monthData.topics.forEach(topic => {
+                    html += `
+                        <div class="topic-group">
+                            <h3 class="topic-title">${topic.title}</h3>
+                            <p class="topic-insight">${topic.insight}</p>
+                            <ul class="checklist">`;
+
+                    topic.videos.forEach((defaultVideoTitle, index) => {
+                        const uid = `${path}-${topic.id}-v${index}`;
+                        const displayTitle = customTitles[uid] || defaultVideoTitle;
+                        const safeTitle = defaultVideoTitle.replace(/'/g, "\\'");
+                        let topicLabel = '', lockState = '', mgtIcons = '';
+
+                        if (savedLinks[uid]) {
+                            initializeProgressObj(uid);
+                            if (!watchProgress[uid].unlocked && !savedProgress[uid]) lockState = 'disabled';
+                            
+                            topicLabel = `
+                                <span onclick="event.stopPropagation(); initiatePlayback('${uid}', '${safeTitle}')" 
+                                      style="color: var(--active-accent); text-decoration: underline; font-weight: 500;">
+                                    ${displayTitle} 🎥
+                                </span>`;
+                                
+                            mgtIcons = `
+                                <div class="management-icons">
+                                    <span class="mgt-icon edit-icon" title="Rename Title" onclick="renameCustomTitle('${uid}', '${safeTitle}')">✏️</span>
+                                    <span class="mgt-icon trash-icon" title="Remove Link" onclick="deleteCustomLink('${uid}')">🗑️</span>
+                                </div>`;
+                        } else {
+                            lockState = 'disabled';
+                            topicLabel = `<span>${displayTitle}</span>`;
+                            
+                            if (savedProgress[uid]) {
+                                savedProgress[uid] = false;
+                                saveLocal('tracker_progress', savedProgress);
+                            }
+                            
+                            mgtIcons = `
+                                <div class="management-icons">
+                                    <span class="mgt-icon edit-icon" title="Rename Title" onclick="renameCustomTitle('${uid}', '${safeTitle}')">✏️</span>
+                                    <span class="mgt-icon link-icon" title="Attach Video" onclick="attachLinkPrompt('${uid}')">🔗</span>
+                                    <span class="mgt-icon disabled" title="No Link Attached">🗑️</span>
+                                </div>`;
+                        }
+                        
+                        html += `
+                            <div class="check-item-container">
+                                <label class="check-item">
+                                    <input type="checkbox" id="${uid}" ${savedProgress[uid] ? 'checked' : ''} ${lockState} onchange="toggleCheckbox('${uid}', '${path}')">
+                                    ${topicLabel}
+                                </label>
+                                ${mgtIcons}
+                            </div>`;
+                    });
+                    html += `</ul></div>`;
+                });
+                html += `</div>`;
+            });
+
+            $(`${path}-timeline`).innerHTML = html;
+            updateProgress(path);
+        }
+
+        function updateProgress(path) {
+            let totalTopics = 0, completedTopics = 0, totalReq = 0, totalWatched = 0, uploadedCount = 0;
+
+            roadmapData[path].forEach(month => month.topics.forEach(topic => {
+                topic.videos.forEach((video, index) => {
+                    totalTopics++;
+                    const uid = `${path}-${topic.id}-v${index}`;
+                    
+                    if (savedProgress[uid]) completedTopics++;
+                    if (savedLinks[uid]) {
+                        uploadedCount++;
+                        if (watchProgress[uid]) {
+                            const reqGoal = Math.max(0, (watchProgress[uid].totalDuration || 0) - 120);
+                            totalReq += reqGoal;
+                            totalWatched += Math.min(mergeSegmentsAndCalculateTotal(watchProgress[uid].segments), reqGoal);
+                        }
+                    }
+                });
+            }));
+
+            // Progress Bar Updates
+            $(`${path}-count`).innerText = `${completedTopics} / ${totalTopics} Videos Finished (${totalTopics - completedTopics} Remaining)`;
+            $(`${path}-fill`).style.width = `${totalTopics === 0 ? 0 : Math.round((completedTopics / totalTopics) * 100)}%`;
+
+            const watchPercent = totalReq > 0 ? Math.min(100, Math.round((totalWatched / totalReq) * 100)) : 0;
+            $(`${path}-watch-percent`).innerText = `${watchPercent}%`;
+            $(`${path}-watch-fill`).style.width = `${watchPercent}%`;
+
+            $(`${path}-completion-wrapper`).style.display = (uploadedCount === totalTopics && totalTopics > 0) ? 'none' : 'block';
+        }
+
+        window.onload = () => {
+            renderRoadmap('md');
+            renderRoadmap('smma');
+            switchTab('md'); 
+        };
+    </script>
+</body>
+</html>
