@@ -878,7 +878,8 @@
                 videoId: videoId,
                 playerVars: { 
                     'autoplay': 1, 'controls': 1, 'rel': 0, 'fs': 1, 
-                    'start': Math.floor(startPos), 'modestbranding': 1
+                    'start': Math.floor(startPos), 'modestbranding': 1,
+                    'disablekb': 1
                 },
                 events: {
                     'onReady': (e) => {
@@ -911,6 +912,9 @@
 
         function instantiateHtml5Engine(startPos) {
             activeHtml5Player = document.getElementById('html5-core-engine');
+            activeHtml5Player.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') e.preventDefault();
+            });
             activeHtml5Player.currentTime = startPos;
             activeHtml5Player.playbackRate = userPlaybackSpeed;
             
@@ -980,7 +984,7 @@
                     currentPos = fallbackPosition; 
                 } 
                 // Detect legitimate real-time watch vs seeking
-                else if (delta > 0 && delta <= 3 * userPlaybackSpeed) {
+                else if (delta > 0 && delta <= 6 * userPlaybackSpeed) {
                     watchProgress[currentPlayingUid].segments.push([lastTimestampCheckpoint, currentPos]);
                 }
                 
