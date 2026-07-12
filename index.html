@@ -513,7 +513,7 @@
             <div class="player-controls-row">
                 <!-- Unhid the container by changing display to flex -->
                 <div style="display: flex; flex-direction: column; gap: 0.2rem;">
-                    <span id="player-status" style="font-weight: 600; color: var(--active-accent);">Remaining target watch time: Calculating...</span>
+                    <span id="player-status" style="display: none;font-weight: 600; color: var(--active-accent);">Remaining target watch time: Calculating...</span>
                     <span id="player-progress-bar-text" style="font-size: 0.85rem; color: var(--text-muted);">0s / 0s required</span>
                 </div>
                 <div>
@@ -534,7 +534,7 @@
                 </div>
             </div>
             <!-- Unhid the shortcut text by changing display to block -->
-            <p style="display: block; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Shortcuts: Left Arrow (-5s) | Right Arrow (+5s)</p>
+            <p style="display: none; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Shortcuts: Left Arrow (-5s) | Right Arrow (+5s)</p>
         </div>
     </div>
 
@@ -895,9 +895,8 @@
                         }
                     },
                     'onStateChange': (e) => {
-                        if (e.data === YT.PlayerState.PLAYING) {
-                            lastTimestampCheckpoint = activeYtPlayer.getCurrentTime();
-                        } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
+                        // Removed the PLAYING reset here so the script catches large skips properly
+                        if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.ENDED) {
                             savePlaybackPosition();
                         }
                     },
@@ -926,7 +925,7 @@
                 }
             };
             
-            activeHtml5Player.onplaying = () => lastTimestampCheckpoint = activeHtml5Player.currentTime;
+            //activeHtml5Player.onplaying = () => lastTimestampCheckpoint = activeHtml5Player.currentTime;
             activeHtml5Player.onpause = () => savePlaybackPosition();
             activeHtml5Player.onended = () => savePlaybackPosition();
             activeHtml5Player.onratechange = () => {
@@ -1069,39 +1068,52 @@
             renderRoadmap(currentPathContext);
         }
 
-        // Keyboard Shortcuts for Seeking - Updated to correctly register 5s progress chunks
+        // Keyboard Shortcuts for Seeking - Fixed double-seeking and UI registration
         window.addEventListener('keydown', (e) => {
             if (!isPlayerOpen) return;
             
             const SEEK_AMOUNT = 5;
-            if (e.key === 'ArrowRight') {
-                if (activeYtPlayer && typeof activeYtPlayer.seekTo === 'function') {
-                    let oldTime = activeYtPlayer.getCurrentTime();
-                    let newTime = oldTime + SEEK_AMOUNT;
-                    
-                    // Directly push the 5s jump into segments before moving playhead
-                    watchProgress[currentPlayingUid].segments.push([oldTime, newTime]);
-                    
-                    activeYtPlayer.seekTo(newTime, true);
-                    lastTimestampCheckpoint = newTime;
+            
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                e.preventDefault(); // Stops the native player from doing its own 5s skip
+                
+                let oldTime = 0;
+                let newTime = 0;
+                let playerRef = null;
+
+                if (activeYtPlayer && typeof activeYtPlayer.getCurrentTime === 'function') {
+                    oldTime = activeYtPlayer.getCurrentTime();
+                    playerRef = 'yt';
                 } else if (activeHtml5Player) {
-                    let oldTime = activeHtml5Player.currentTime;
-                    let newTime = oldTime + SEEK_AMOUNT;
-                    
-                    // Directly push the 5s jump into segments before moving playhead
-                    watchProgress[currentPlayingUid].segments.push([oldTime, newTime]);
-                    
-                    activeHtml5Player.currentTime = newTime;
-                    lastTimestampCheckpoint = newTime;
+                    oldTime = activeHtml5Player.currentTime;
+                    playerRef = 'html5';
                 }
-            } else if (e.key === 'ArrowLeft') {
-                if (activeYtPlayer && typeof activeYtPlayer.seekTo === 'function') {
-                    let newTime = Math.max(0, activeYtPlayer.getCurrentTime() - SEEK_AMOUNT);
+
+                if (!playerRef) return;
+
+                if (e.key === 'ArrowRight') {
+                    newTime = oldTime + SEEK_AMOUNT;
+                    // Register the 5 seconds as watched
+                    watchProgress[currentPlayingUid].segments.push([oldTime, newTime]);
+                } else if (e.key === 'ArrowLeft') {
+                    newTime = Math.max(0, oldTime - SEEK_AMOUNT);
+                }
+
+                // Move the playhead
+                if (playerRef === 'yt') {
                     activeYtPlayer.seekTo(newTime, true);
-                    lastTimestampCheckpoint = newTime;
-                } else if (activeHtml5Player) {
-                    activeHtml5Player.currentTime = Math.max(0, activeHtml5Player.currentTime - SEEK_AMOUNT);
-                    lastTimestampCheckpoint = activeHtml5Player.currentTime;
+                } else {
+                    activeHtml5Player.currentTime = newTime;
+                }
+                
+                // Update trackers
+                lastTimestampCheckpoint = newTime;
+                watchProgress[currentPlayingUid].lastPosition = newTime;
+                
+                // Force an immediate save and UI refresh to show time acquired
+                localStorage.setItem('tracker_watch_progress', JSON.stringify(watchProgress));
+                if (watchProgress[currentPlayingUid].totalDuration > 0) {
+                    evaluateWatchCompletion(watchProgress[currentPlayingUid].totalDuration);
                 }
             }
         });
