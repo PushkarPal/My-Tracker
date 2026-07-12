@@ -410,7 +410,7 @@
         /* Player Utilities */
         .player-controls-row {
             display: flex;
-            justify-content: flex-end; /* Adjusted since left side is hidden */
+            justify-content: space-between;
             align-items: center;
             margin-top: 1rem;
             gap: 1rem;
@@ -511,8 +511,8 @@
             </div>
             
             <div class="player-controls-row">
-                <!-- UI elements strictly hidden to preserve background function while removing visual clutter -->
-                <div style="display: none; flex-direction: column; gap: 0.2rem;">
+                <!-- Unhid the container by changing display to flex -->
+                <div style="display: flex; flex-direction: column; gap: 0.2rem;">
                     <span id="player-status" style="font-weight: 600; color: var(--active-accent);">Remaining target watch time: Calculating...</span>
                     <span id="player-progress-bar-text" style="font-size: 0.85rem; color: var(--text-muted);">0s / 0s required</span>
                 </div>
@@ -533,8 +533,8 @@
                     </select>
                 </div>
             </div>
-            <!-- Shortcut text hidden -->
-            <p style="display: none; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Shortcuts: Left Arrow (-5s) | Right Arrow (+5s)</p>
+            <!-- Unhid the shortcut text by changing display to block -->
+            <p style="display: block; font-size:0.8rem; color:var(--text-muted); margin-top:0.5rem;">Shortcuts: Left Arrow (-5s) | Right Arrow (+5s)</p>
         </div>
     </div>
 
