@@ -1040,8 +1040,9 @@
                 document.getElementById('player-status').style.color = "var(--active-accent)";
             }
 
+            const displayAccumulated = Math.min(verifiedAccumulated, requirementGoal);
             document.getElementById('player-progress-bar-text').innerText = 
-                `${Math.floor(verifiedAccumulated)}s / ${Math.floor(requirementGoal)}s acquired`;
+                `${Math.floor(displayAccumulated)}s / ${Math.floor(requirementGoal)}s acquired`;
         }
 
         function savePlaybackPosition() {
@@ -1255,8 +1256,12 @@
                         if (savedLinks[uid]) {
                             uploadedCount++;
                             if (watchProgress[uid]) {
-                                totalVideoSecRequired += (watchProgress[uid].totalDuration || 0);
-                                totalVideoSecWatched += mergeSegmentsAndCalculateTotal(watchProgress[uid].segments);
+                                const duration = watchProgress[uid].totalDuration || 0;
+                                const reqGoal = Math.max(0, duration - 120);
+                                const watched = mergeSegmentsAndCalculateTotal(watchProgress[uid].segments)
+
+                                totalVideoSecRequired += reqGoal;
+                                totalVideoSecWatched += Math.min(watched, reqGoal);
                             }
                         }
                     });
