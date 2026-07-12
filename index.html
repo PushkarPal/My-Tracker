@@ -973,15 +973,22 @@
 
                 const delta = currentPos - lastTimestampCheckpoint;
 
-                // Handle Large Forward Seeks
-                if (delta >= 30) {
+                // Find the furthest timestamp you have watched in this video so far
+                let maxWatchedTime = 0;
+                if (watchProgress[currentPlayingUid] && watchProgress[currentPlayingUid].segments) {
+                    watchProgress[currentPlayingUid].segments.forEach(seg => {
+                        if (seg[1] > maxWatchedTime) maxWatchedTime = seg[1];
+                    });
+                }                    
+                // Block large forward skips ONLY if jumping past what you've already watched
+                if (delta >= 30 && currentPos > maxWatchedTime) {
                     if (engineType === 'youtube') activeYtPlayer.pauseVideo();
-                    else if (engineType === 'html5') activeHtml5Player.pause();
-                    
+                    if (engineType === 'youtube') activeYtPlayer.pauseVideo();
+
                     const fallbackPosition = lastTimestampCheckpoint;
                     showSkipWarning(fallbackPosition, engineType);
                     
-                    currentPos = fallbackPosition; 
+                    currentPos = fallbackPosition;
                 } 
                 // Detect legitimate real-time watch vs seeking
                 else if (delta > 0 && delta <= 6 * userPlaybackSpeed) {
