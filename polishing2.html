@@ -46,6 +46,31 @@
             z-index: 100;
         }
 
+        /* Auto-Fading Skip Notification */
+        .toast-popup {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(239, 68, 68, 0.95); /* Red with slight transparency */
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            z-index: 2147483647; /* Maximum z-index to stay on top in fullscreen */
+            pointer-events: none; /* Allows clicking right through it */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            animation: toastFade 3.5s forwards;
+        }
+
+        @keyframes toastFade {
+            0% { opacity: 0; transform: translate(-50%, -20px); }
+            10% { opacity: 1; transform: translate(-50%, 0); }
+            80% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -20px); }
+        }
+
         .nav-tabs { display: flex; gap: 2rem; }
 
         .tab-btn {
@@ -688,6 +713,22 @@
             else if (activeHtml5Player) activeHtml5Player.playbackRate = userPlaybackSpeed;
         }
 
+        function showSkipToast() {
+            if ($('skip-toast-msg')) return; // Prevent spamming if already visible
+
+            const toast = document.createElement('div');
+            toast.id = 'skip-toast-msg';
+            toast.className = 'toast-popup';
+            toast.innerText = '⚠️ Large skip detected. Video resumed from where it was left.';
+            
+            $('player-container').appendChild(toast);
+
+            // Automatically remove the element from the code after the animation finishes
+            setTimeout(() => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            }, 3500);
+        }
+
         function igniteVerificationLoop(engineType) {
             const pNode = watchProgress[currentPlayingUid];
             const startPos = pNode?.lastPosition || 0;
@@ -725,10 +766,13 @@
                 }
 
                 if (delta >= 30 && currentPos > maxWatchedTime) {
-                    if (engineType === 'youtube') activeYtPlayer.pauseVideo();
-                    else if (engineType === 'html5') activeHtml5Player.pause();
-            
-                    showSkipWarning(lastTimestampCheckpoint, engineType);
+                    // Snap back to last verified position
+                    if (engineType === 'youtube') activeYtPlayer.seekTo(lastTimestampCheckpoint, true);
+                    else if (engineType === 'html5') activeHtml5Player.currentTime = lastTimestampCheckpoint;
+
+                    // Trigger the notification toast
+                    showSkipToast();
+                    // Reset position
                     currentPos = lastTimestampCheckpoint; 
                 } 
                 else if (delta > 0 && delta <= 6 * userPlaybackSpeed) {
